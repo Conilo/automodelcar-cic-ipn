@@ -45,7 +45,7 @@ def on_new_intersection_msg(msg):
     print('Current speed: ' + str(master.current_speed))
     print('Current strg: ' + str(master.current_steering))
 
-def on_new_lane_msg(msg)
+def on_new_lane_msg(msg):
 
     master.lane_steering = msg.steering_value
     master.lane_speed = msg.speed_value

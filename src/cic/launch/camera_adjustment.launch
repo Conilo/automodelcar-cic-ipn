@@ -11,9 +11,9 @@
     <param name="pixel_cm_ratio_y" value="8" type="int" />
     <param name="scale_x" value="0.4" type="double" />
     <param name="scale_y" value="1.2" type="double" />
-    <param name="p1" value="45" type="int" />
-    <param name="p2" value="50" type="int" />
-    <param name="p3" value="45" type="int" />
-    <param name="p4" value="50" type="int" />
+    <param name="p1" value="48" type="int" />
+    <param name="p2" value="48" type="int" />
+    <param name="p3" value="44" type="int" />
+    <param name="p4" value="44" type="int" />
     </node>
 </launch>
