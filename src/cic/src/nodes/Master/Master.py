@@ -38,9 +38,17 @@ def on_new_intersection_msg(msg):
 
     # Task solver
     master.task_solver()
-    
-    print('Distance to inter. line: '+ str(msg.distance))
+
+
     print('Tasks on pile: ' + str(len(master.task_pile)))
+    print('Distance to inter. line: '+ str(msg.distance))
+    print('Current speed: ' + str(master.current_speed))
+    print('Current strg: ' + str(master.current_steering))
+
+def on_new_lane_msg(msg)
+
+    master.lane_steering = msg.steering_value
+    master.lane_speed = msg.speed_value
     
 
 def main():
@@ -56,6 +64,11 @@ def main():
         '/crossing_detection', 
         Intersection, 
         on_new_intersection_msg)
+    
+    rospy.Subscriber(
+        '/lane_detection', 
+        Lane, 
+        on_new_lane_msg)
 
     rospy.spin()
 
