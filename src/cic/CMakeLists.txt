@@ -99,12 +99,17 @@ target_include_directories(${PROJECT_NAME} PUBLIC
 add_executable(ImageProcessing src/nodes/ImageProcessing/ImageProcessing.cpp)
 add_executable(LaneDetection src/nodes/LaneDetection/LaneDetection.cpp)
 add_executable(CrossingDetection src/nodes/CrossingDetection/CrossingDetection.cpp)
+add_executable(ParkingMaster src/nodes/Parking/ParkingMaster.cpp)
+add_executable(ParkingObstacleDetection src/nodes/Parking/ParkingObstacleDetection.cpp)
+
 
 ## Add cmake target dependencies of the executable
 ## same as for the library above
 add_dependencies(ImageProcessing ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 add_dependencies(LaneDetection ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 add_dependencies(CrossingDetection ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+add_dependencies(ParkingMaster ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+add_dependencies(ParkingObstacleDetection ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
 target_link_libraries(ImageProcessing
@@ -117,6 +122,16 @@ target_link_libraries(LaneDetection
 )
 
 target_link_libraries(CrossingDetection
+   ${catkin_LIBRARIES}
+   ${PROJECT_NAME}
+)
+
+target_link_libraries(ParkingMaster
+   ${catkin_LIBRARIES}
+   ${PROJECT_NAME}
+)
+
+target_link_libraries(ParkingObstacleDetection
    ${catkin_LIBRARIES}
    ${PROJECT_NAME}
 )
