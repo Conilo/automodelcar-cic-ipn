@@ -206,7 +206,7 @@ class Master:
 
             # Checks if it's close to an intersection
             if (self.dist_to_line > 0  and  
-                self.dist_to_line < self.min_dist_to_line):
+                self.dist_to_line <= self.min_dist_to_line):
 
                 # Sets speed policy
                 self.current_speed = self.crossing_speed/2
@@ -251,3 +251,13 @@ class Master:
                     calculate_steering(self.pwm_steering_center,
                                        self.steering_change_factor,
                                        self.line_angle)
+    def run(self):
+        """
+        Executes the task assigner and solver 
+        to process the received data.
+        """
+
+        # Task assigner
+        self.task_assigner()
+        # Task solver
+        self.task_solver() 
