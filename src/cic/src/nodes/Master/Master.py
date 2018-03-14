@@ -42,14 +42,14 @@ def on_new_intersection_msg(msg):
     master.dist_to_line = msg.distance
     master.line_angle = msg.angle
 
-    rospy.loginfo('Distance to line: '+ str(msg.distance))
+    #rospy.loginfo('Distance to line: '+ str(msg.distance))
 
     # Process received data
     master.run()
 
     # Set speed and steering policies pusblishing
     speed_pub.publish(master.current_speed)
-    #steering_pub.publish(master.current_steering)
+    steering_pub.publish(master.current_steering)
 
     end_time = cv2.getTickCount()
     total_time = end_time - start_time
@@ -67,7 +67,7 @@ def on_new_lane_msg(msg):
 
     # Set speed and steering policies pusblishing
     speed_pub.publish(master.current_speed)
-    #steering_pub.publish(master.current_steering)
+    steering_pub.publish(master.current_steering)
 
     end_time = cv2.getTickCount()
     total_time = \
