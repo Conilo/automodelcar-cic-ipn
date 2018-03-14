@@ -140,18 +140,23 @@ void imageCb(const sensor_msgs::ImageConstPtr& msg)
 		cv::fitLine(line_points, line_polynom, 
 			CV_DIST_L1, 0, 0.01, 0.01);
 
-		// Get the line angle form the line polynom
-		calculated_angle = 
-			ToDegrees(
-				atan(line_polynom[1]/line_polynom[0]));
+		// Get line ecuation parameters
+		float line_slope = line_polynom[1]/line_polynom[0];
+		float b = line_polynom[3] - (line_slope*line_polynom[2]);
+
+		// Get line angle in degrees
+		calculated_angle = ToDegrees(atan(line_slope));
 		
 		// Validation of the line by the angle
 		if ((calculated_angle > -15.0) && (calculated_angle < 15.0))
 		{
+			// Y coordinate of the line intersection point.
+			int intersect_point_Y = line_slope*(image_width/2) + b;
+
 			// Set the line attributes
 			line_angle = calculated_angle;
 			dist_to_line = 
-				(image_height - line_polynom[3]) / PIXEL_CM_RATIO_Y;
+				(image_height - intersect_point_Y) / PIXEL_CM_RATIO_Y;
 		}
 		else
 		{
@@ -206,6 +211,8 @@ void imageCb(const sensor_msgs::ImageConstPtr& msg)
 		}
 
 		// Print debug info 
+		ROS_INFO("  Line angle: %f ------- ", line_angle);
+		ROS_INFO("  Line distance: %i ------- ", dist_to_line);
 		ROS_INFO(" frame time: %.4f ----- block end", elapsed_time);
 		cv::imshow(CROSSING_DETECTION_WINDOW, image);
 		cv::waitKey(3); 

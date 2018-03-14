@@ -147,7 +147,6 @@ void imageCb(const sensor_msgs::ImageConstPtr& msg)
     if (CALIBRATION)
     {
       
-      // Using a 35x35 cm chessboard
       int half_width = image_width/2;
       int half_height = image_height/2;
 

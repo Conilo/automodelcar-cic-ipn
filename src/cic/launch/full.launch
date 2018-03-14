@@ -2,7 +2,7 @@
 <launch>
     <!-- Set Relative Parameters -->
     <param name="/debug_mode" value="true" type="bool" />
-    <param name="/run_on_car" value="false" type="bool" /> 
+    <param name="/run_on_car" value="true" type="bool" /> 
     <param name="/lane_width" value="100" type="int" />
     <param name="/max_steering_angle_right" value="160" type="int" />
     <param name="/max_steering_angle_left" value="20" type="int" />
