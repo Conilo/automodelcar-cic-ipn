@@ -52,18 +52,18 @@ int CalculateServoPWM(
     int center_deviation, 
     int last_center_deviation) 
 {
-    int pe;
-    int pp;
+    float pe;
+    float pp;
 	int output;  
 		  
 	if (curvature_degree>110 || curvature_degree<90)
     {
-		pe = 1.4;
-		pp = 1.1;
+		pe = 1.25;
+		pp = 0.9;
     }
 	else	
 	{
-        pe = 0.4;
+        pe = 0.3;
 		pp = 1;
     }
 		  
