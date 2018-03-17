@@ -11,9 +11,14 @@
 #include <std_msgs/Int16.h>
 #include <std_msgs/Float32.h>
 
+// Global Parameters
+bool DEBUG = true;
 float MAX_DIST = 1.1;
 int AMP_ANG_FIZQ = 60;
 int AMP_ANG_FDER = 210;
+
+// Global variables
+int start_time, end_time;
 int ang;
 float dist;
 std::vector<int> ROI;
@@ -22,55 +27,80 @@ std::vector<std::pair<int,float> > obj;
 std_msgs::Int16 pa;
 std_msgs::Float32 pd;     
 
-class Obstacle
+class ObstacleDetection
 {
-ros::NodeHandle nh;
-ros::Publisher publaser,pubdist,pubang;	
-ros::Subscriber scan_sub;
+    ros::NodeHandle nh;
+    ros::Publisher laser_pub, pubdist, pubang;	
+    ros::Subscriber scan_sub;
+
 public:
-	Obstacle()
-	:nh()
+
+ObstacleDetection()
+	: nh()
 {
-publaser = nh.advertise<sensor_msgs::LaserScan>("/scan_followc/scan",1);//Para publicar en consola
-pubdist = nh.advertise<std_msgs::Float32>("/scan_followc/dist",1);
-pubang = nh.advertise<std_msgs::Int16>("/scan_followc/angle",1);
-scan_sub = nh.subscribe("/scan",360, &Obstacle::laser_msg_Callback,this);    
+    scan_sub = 
+        nh.subscribe("/scan", 360, 
+            &ObstacleDetection::laser_msg_Callback, this); 
+
+    pubdist = 
+        nh.advertise<std_msgs::Float32>("/scan_followc/dist",1);
+    pubang = 
+        nh.advertise<std_msgs::Int16>("/scan_followc/angle",1); 
+
+    if (DEBUG)
+    {
+        laser_pub = 
+            nh.advertise<sensor_msgs::LaserScan>(
+                "/obstacle_detection_scan", 1);
+    }
+     
 }
 
-void laser_msg_Callback(const sensor_msgs::LaserScan::ConstPtr& scan)
+void laser_msg_Callback(
+    const sensor_msgs::LaserScan::ConstPtr& scan)
 {
-    //you can get readings with scan->ranges[]
-    int e1 = cv::getTickCount();
-	//sensor_msgs::LaserScan newscan;
+    // Starts counting time
+    start_time = cv::getTickCount();
+
+    // Local variables
+    float elapsed_time;
     
-    for (float i=0.0;i<=360.0;i++)
-    {
-      ranges.push_back(std::numeric_limits<float>::infinity()*(i));  
-    }
-    
-    bool objFlag=false;
-    bool f1=false;
-    bool f2=false;
-    
+    bool objFlag = false;
+    bool f1 = false;
+    bool f2 = false;
     sensor_msgs::LaserScan newscan;
+
+    if (DEBUG)
+    {
+        // Creates a scan vector array for debug purpuses
+        for (float i=0.0;i<=360.0;i++)
+        {
+            ranges.push_back(std::numeric_limits<float>::infinity()*(i));  
+        }
+    }
 
     //Rango
     for (int j=0;j<=60;j++)
-    {ROI.push_back(j);
-    f1=true; }
+        {
+            ROI.push_back(j);
+            f1=true; 
+        }
+
     if (f1==true)
-    {for (int k=340;k<=359;k++)
-     {
-       ROI.push_back(k);
-        f2=true;}
+    {
+        for (int k=340;k<=359;k++)
+        {
+            ROI.push_back(k);
+            f2=true;
+        }
     }
     else if(f2==true)
-    {for (int l=61;l<=210;l++)
-    {ROI.push_back(l);}
+    {
+        for (int l=61;l<=210;l++)
+        {
+            ROI.push_back(l);
+        }
     }
-    //Fake data
-    //for(unsigned int i=0;i<num_readings;i++)
-    //{ranges[i]=contador;}
 
     int cnt=0;
     for (int m=ROI.front();m<=ROI.back();m++)
@@ -119,23 +149,30 @@ void laser_msg_Callback(const sensor_msgs::LaserScan::ConstPtr& scan)
         pubdist.publish(pd);
         newscan.ranges = ranges;
         //newscan.intensities = intensities
-        publaser.publish(newscan);
+        laser_pub.publish(newscan);
         
        // newscan.ranges= ranges;
     }
-	int e2 = cv::getTickCount();	
-        float t = (e2 - e1)/cv::getTickFrequency();
-        ROS_INFO("Ang: %i     |Dist: %f",ang,dist);
-        ROS_INFO("Time elapsed:%f........................................................end block",t);
-	   }
+
+    // Finish counting time
+	end_time = cv::getTickCount();	
+    elapsed_time = 
+        (end_time - start_time)/cv::getTickFrequency();
+    ROS_INFO("Ang: %i     |Dist: %f",ang,dist);
+    ROS_INFO("Time elapsed:%f.........end block", elapsed_time);
+}
 };
 
 
 int main(int argc,char **argv)
 {
-ros::init(argc, argv, "Obstacle");
-ROS_INFO("my_node running...");
-Obstacle ic;
-ros::spin();
-return 0;
+    ros::init(argc, argv, "ObstacleDetection");
+    ROS_INFO("ObstacleDetection node running...");
+
+    // Get parameters from launch
+
+
+    ObstacleDetection od;
+    ros::spin();
+    return 0;
 }
