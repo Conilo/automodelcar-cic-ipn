@@ -23,7 +23,7 @@ add_message_files(
    FILES
    Intersection.msg
    Lane.msg
-   Master.msg
+   Obstacles.msg
 )
 
 generate_messages(

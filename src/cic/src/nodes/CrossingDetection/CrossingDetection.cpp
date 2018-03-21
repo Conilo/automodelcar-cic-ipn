@@ -142,7 +142,7 @@ void imageCb(const sensor_msgs::ImageConstPtr& msg)
 
 		// Get line ecuation parameters
 		float line_slope = line_polynom[1]/line_polynom[0];
-		float b = line_polynom[3] - (line_slope*line_polynom[2]);
+		float line_bias = line_polynom[3] - (line_slope*line_polynom[2]);
 
 		// Get line angle in degrees
 		calculated_angle = ToDegrees(atan(line_slope));
@@ -151,7 +151,7 @@ void imageCb(const sensor_msgs::ImageConstPtr& msg)
 		if ((calculated_angle > -15.0) && (calculated_angle < 15.0))
 		{
 			// Y coordinate of the line intersection point.
-			int intersect_point_Y = line_slope*(image_width/2) + b;
+			int intersect_point_Y = line_slope*(image_width/2) + line_bias;
 
 			// Set the line attributes
 			line_angle = calculated_angle;

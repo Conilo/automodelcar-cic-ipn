@@ -1,37 +1,35 @@
 #include <ros/ros.h>
 #include <opencv2/opencv.hpp>
-#include <image_transport/image_transport.h>
 #include <opencv2/imgproc/imgproc.hpp>
-#include <cv_bridge/cv_bridge.h>  
-#include <sensor_msgs/image_encodings.h>
 #include <ros/console.h>
 #include <vector>
 #include <iostream>
 #include <sensor_msgs/LaserScan.h>
-#include <std_msgs/Int16.h>
-#include <std_msgs/Float32.h>
+#include "cic/Obstacles.h"
+
+typedef std::vector<cv::Point> vector_point;
+typedef std::vector<vector_point> obstacles;
 
 // Global Parameters
 bool DEBUG = true;
-float MAX_DIST = 1.1;
-int AMP_ANG_FIZQ = 60;
-int AMP_ANG_FDER = 210;
+float MAX_DIST = 1.0;
+int INITIAL_RANGE_ANGLE = 300;
+int END_RANGE_ANGLE = 200;
+int MIN_POINTS = 5;
+
+//Global constants
+float MAX_DIST_ALLOWED = 5.0;
 
 // Global variables
 int start_time, end_time;
-int ang;
-float dist;
-std::vector<int> ROI;
-std::vector<float> ranges;
-std::vector<std::pair<int,float> > obj;  
-std_msgs::Int16 pa;
-std_msgs::Float32 pd;     
+int angle;
+float distance;    
 
 class ObstacleDetection
 {
     ros::NodeHandle nh;
-    ros::Publisher laser_pub, pubdist, pubang;	
     ros::Subscriber scan_sub;
+    ros::Publisher pubMsg, laser_pub;
 
 public:
 
@@ -42,10 +40,8 @@ ObstacleDetection()
         nh.subscribe("/scan", 360, 
             &ObstacleDetection::laser_msg_Callback, this); 
 
-    pubdist = 
-        nh.advertise<std_msgs::Float32>("/scan_followc/dist",1);
-    pubang = 
-        nh.advertise<std_msgs::Int16>("/scan_followc/angle",1); 
+    pubMsg = nh.advertise<cic::Obstacles>(
+        "/obstacle_detection", 1);
 
     if (DEBUG)
     {
@@ -64,102 +60,129 @@ void laser_msg_Callback(
 
     // Local variables
     float elapsed_time;
-    
-    bool objFlag = false;
-    bool f1 = false;
-    bool f2 = false;
-    sensor_msgs::LaserScan newscan;
+    bool detected_object = false;
+    std::vector<int> ROI;
+    std::vector<float> ranges;
+    std::vector<float> intensities;
+    vector_point scan_points, obstacle;
+    obstacles detected_obstacles;
 
+    // scan/ranges vector for debug purpuses
+    sensor_msgs::LaserScan debug_scan;
+
+    // Fill the ranges vector
+    for (float i=0.0; i<=360.0; i++)
+    {
+        ranges.push_back(
+            std::numeric_limits<float>::infinity());
+        intensities.push_back(
+            std::numeric_limits<float>::infinity());  
+    }
+
+    // Range to be considered
+    if (INITIAL_RANGE_ANGLE >= END_RANGE_ANGLE)
+    {
+        int i = INITIAL_RANGE_ANGLE;;
+        while (i<360)
+        {
+            ROI.push_back(i);
+            i += 1;
+        }
+        i = 0;
+        while (i < END_RANGE_ANGLE)
+        {
+            ROI.push_back(i);
+            i += 1;
+        }
+    }
+    else
+    {
+        int i = INITIAL_RANGE_ANGLE;
+        while (i < END_RANGE_ANGLE)
+        {
+            ROI.push_back(i);
+            i += 1;
+        }
+    }
+
+    // Takes only points within a certian distance 
+    // (< MAX_DIST)
+    for (std::vector<int>::iterator i=ROI.begin(); 
+		 i != ROI.end(); ++i)
+     { 
+        if(scan->ranges[*i] <= MAX_DIST)
+           {
+              ranges[*i] = scan->ranges[*i];
+              intensities[*i] = scan->intensities[*i];
+              scan_points.push_back(
+                  cv::Point(*i, scan->ranges[*i]));
+                  
+           }
+    }
+
+    // BDSCAN variation algorithm
+    cv::Point last_point = scan_points.front();
+    int cnt = 0;
+
+	for (int i = 0; i <= scan_points.size(); ++i)
+    {
+        cv::Point current_point = scan_points[i];
+
+        // Unifies the 360 range with 0 range
+        if ((current_point.x < 5) && (last_point.x > 300))
+        {
+            last_point.x = 0;
+        }
+        
+        float dist_norm = cv::norm(current_point - last_point);
+        
+        if (dist_norm < MAX_DIST_ALLOWED)
+        {
+            obstacle.push_back(current_point);
+            cnt += 1;
+        }
+        else
+        {
+            if (cnt > MIN_POINTS)
+            {
+                detected_obstacles.push_back(obstacle);
+            }
+            obstacle.clear();
+            cnt = 0;
+        }
+        last_point = current_point;
+    }
+
+    ROS_INFO("Detected obstacles: %lu", detected_obstacles.size());	
+
+    // Message publication
+    cic::Obstacles obstacles_msg;
+    obstacles_msg.header.stamp = ros::Time::now();
+	obstacles_msg.angle = angle;
+	obstacles_msg.distance = distance;
+	pubMsg.publish(obstacles_msg);
+
+    // Publish debug info
     if (DEBUG)
     {
-        // Creates a scan vector array for debug purpuses
-        for (float i=0.0;i<=360.0;i++)
-        {
-            ranges.push_back(std::numeric_limits<float>::infinity()*(i));  
-        }
-    }
+        debug_scan = *scan;
+        debug_scan.header.stamp = ros::Time::now();
+        debug_scan.header.frame_id = scan->header.frame_id;
+        debug_scan.ranges = ranges;
+        debug_scan.intensities = intensities;
 
-    //Rango
-    for (int j=0;j<=60;j++)
-        {
-            ROI.push_back(j);
-            f1=true; 
-        }
+        laser_pub.publish(debug_scan);
 
-    if (f1==true)
-    {
-        for (int k=340;k<=359;k++)
-        {
-            ROI.push_back(k);
-            f2=true;
-        }
+        ROS_INFO("Angle: %i  |Distance: %f", 
+                 angle, 
+                 distance);
     }
-    else if(f2==true)
-    {
-        for (int l=61;l<=210;l++)
-        {
-            ROI.push_back(l);
-        }
-    }
-
-    int cnt=0;
-    for (int m=ROI.front();m<=ROI.back();m++)
-     { 
-        if(scan->ranges[m]<MAX_DIST)
-           {
-              ranges[m]=scan->ranges[m];
-              obj.push_back(std::make_pair(m,scan->ranges[m]));
-              cnt++;
-           }
-         else 
-         {
-             if(cnt>7)
-             {
-                ang=obj.front().first;
-                dist=obj.front().second;
-                objFlag=true;
-                break;
-             }
-         }
-    }
-    obj.clear();
-    if (objFlag==true)
-    {
-       ang=obj.front().first;
-       dist=obj.front().second;
-       pa.data=obj.front().first;
-       pd.data=obj.front().second;
-       pubang.publish(pa);
-       pubdist.publish(pd);
-      
-       if (ang>300 || ang<=60)
-       {ROS_INFO("Front");}
-       else if (ang>60 && ang<140)
-       {ROS_INFO("Lat");}
-       else 
-       {ROS_INFO("Back");}	 
-    }
-    else 
-    {
-        ang=220;
-        dist=0.1;
-        pa.data=220;
-        pd.data=0.1;
-        pubang.publish(pa);
-        pubdist.publish(pd);
-        newscan.ranges = ranges;
-        //newscan.intensities = intensities
-        laser_pub.publish(newscan);
-        
-       // newscan.ranges= ranges;
-    }
-
+    
     // Finish counting time
-	end_time = cv::getTickCount();	
+	end_time = cv::getTickCount();
     elapsed_time = 
         (end_time - start_time)/cv::getTickFrequency();
-    ROS_INFO("Ang: %i     |Dist: %f",ang,dist);
-    ROS_INFO("Time elapsed:%f.........end block", elapsed_time);
+    ROS_INFO("Time elapsed:%f....... end block", elapsed_time);
 }
 };
 
