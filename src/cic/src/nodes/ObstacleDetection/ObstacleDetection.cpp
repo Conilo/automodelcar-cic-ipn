@@ -3,27 +3,33 @@
 #include <opencv2/imgproc/imgproc.hpp>
 #include <ros/console.h>
 #include <vector>
+#include <algorithm>
 #include <iostream>
 #include <sensor_msgs/LaserScan.h>
+#include "geometry_msgs/Point.h"
 #include "cic/Obstacles.h"
 
-typedef std::vector<cv::Point> vector_point;
+typedef std::vector<cv::Point2f> vector_point;
 typedef std::vector<vector_point> obstacles;
+
+struct Sort_Y {
+    bool operator() (cv::Point pt1, cv::Point pt2) 
+    { return (pt1.y < pt2.y); }
+} sort_y;
 
 // Global Parameters
 bool DEBUG = true;
-float MAX_DIST = 1.0;
-int INITIAL_RANGE_ANGLE = 300;
-int END_RANGE_ANGLE = 200;
-int MIN_POINTS = 5;
+float RANGE = 1.0;
+float INITIAL_RANGE_ANGLE = 300.0;
+float END_RANGE_ANGLE = 200.0;
 
-//Global constants
-float MAX_DIST_ALLOWED = 5.0;
+// BDSCAN global parameters
+int MIN_OBSTACLE_POINTS = 10;
+float MAX_DISTANCE_POINTS = 5.0; 
+
 
 // Global variables
 int start_time, end_time;
-int angle;
-float distance;    
 
 class ObstacleDetection
 {
@@ -59,19 +65,20 @@ void laser_msg_Callback(
     start_time = cv::getTickCount();
 
     // Local variables
-    float elapsed_time;
-    bool detected_object = false;
-    std::vector<int> ROI;
+    int cnt, detected_obstacles;
+    float elapsed_time, dist_norm;
+    std::vector<float> ROI;
     std::vector<float> ranges;
     std::vector<float> intensities;
     vector_point scan_points, obstacle;
-    obstacles detected_obstacles;
+    obstacles detected_obstacles_vector;
+    cv::Point2f last_point, current_point;
 
     // scan/ranges vector for debug purpuses
     sensor_msgs::LaserScan debug_scan;
 
     // Fill the ranges vector
-    for (float i=0.0; i<=360.0; i++)
+    for (float i = 0.0; i <= 360.0; i++)
     {
         ranges.push_back(
             std::numeric_limits<float>::infinity());
@@ -82,51 +89,48 @@ void laser_msg_Callback(
     // Range to be considered
     if (INITIAL_RANGE_ANGLE >= END_RANGE_ANGLE)
     {
-        int i = INITIAL_RANGE_ANGLE;;
+        float i = INITIAL_RANGE_ANGLE;;
         while (i<360)
         {
             ROI.push_back(i);
-            i += 1;
+            i += 1.0;
         }
-        i = 0;
+        i = 0.0;
         while (i < END_RANGE_ANGLE)
         {
             ROI.push_back(i);
-            i += 1;
+            i += 1.0;
         }
     }
     else
     {
-        int i = INITIAL_RANGE_ANGLE;
+        float i = INITIAL_RANGE_ANGLE;
         while (i < END_RANGE_ANGLE)
         {
             ROI.push_back(i);
-            i += 1;
+            i += 1.0;
         }
     }
 
-    // Takes only points within a certian distance 
-    // (< MAX_DIST)
-    for (std::vector<int>::iterator i=ROI.begin(); 
-		 i != ROI.end(); ++i)
+    // Takes points within a certian distance range
+    for (std::vector<float>::iterator i = ROI.begin(); 
+		 i != ROI.end(); i++)
      { 
-        if(scan->ranges[*i] <= MAX_DIST)
+        if(scan->ranges[*i] <= RANGE)
            {
-              ranges[*i] = scan->ranges[*i];
-              intensities[*i] = scan->intensities[*i];
-              scan_points.push_back(
-                  cv::Point(*i, scan->ranges[*i]));
-                  
+                ranges[*i] = scan->ranges[*i];
+                intensities[*i] = scan->intensities[*i];
+                scan_points.push_back(
+                    cv::Point2f(*i, scan->ranges[*i]));
            }
     }
 
     // BDSCAN variation algorithm
-    cv::Point last_point = scan_points.front();
-    int cnt = 0;
-
+    cnt = 0;
+    last_point = scan_points.front();
 	for (int i = 0; i <= scan_points.size(); ++i)
     {
-        cv::Point current_point = scan_points[i];
+        current_point = scan_points[i];
 
         // Unifies the 360 range with 0 range
         if ((current_point.x < 5) && (last_point.x > 300))
@@ -134,32 +138,61 @@ void laser_msg_Callback(
             last_point.x = 0;
         }
         
-        float dist_norm = cv::norm(current_point - last_point);
+        // Distance between last and current points
+        dist_norm = cv::norm(current_point - last_point);
         
-        if (dist_norm < MAX_DIST_ALLOWED)
+        // Verifies if the distance is lower than Epsylon
+        if (dist_norm < MAX_DISTANCE_POINTS)
         {
+            // Append current point to the object
             obstacle.push_back(current_point);
             cnt += 1;
         }
         else
         {
-            if (cnt > MIN_POINTS)
+            // verifies the object's number of points
+            if (cnt > MIN_OBSTACLE_POINTS)
             {
-                detected_obstacles.push_back(obstacle);
+                // append object to object vetor
+                detected_obstacles_vector.push_back(obstacle);
             }
+            // Clear the current object points
             obstacle.clear();
             cnt = 0;
         }
+
         last_point = current_point;
     }
 
-    ROS_INFO("Detected obstacles: %lu", detected_obstacles.size());	
+    // Get the obstacles closest vertex
+    detected_obstacles = detected_obstacles_vector.size();
+    std::vector<geometry_msgs::Point> obstacle_vertices;
+    geometry_msgs::Point vertix;
+    if (detected_obstacles > 0)
+    {
+        for (int obstacle_index = 0; 
+             obstacle_index < detected_obstacles; 
+             obstacle_index++)
+        {
+            // Sort each obstacle points
+            std::sort(
+                detected_obstacles_vector[obstacle_index].begin(), 
+                detected_obstacles_vector[obstacle_index].end(),
+                sort_y);
+            
+            // Take the closest point
+            vertix.x = detected_obstacles_vector[obstacle_index].front().x;
+            vertix.y = detected_obstacles_vector[obstacle_index].front().y;
+            vertix.z = 0.0;
+            obstacle_vertices.push_back(vertix);
+            }
+    }
 
     // Message publication
     cic::Obstacles obstacles_msg;
     obstacles_msg.header.stamp = ros::Time::now();
-	obstacles_msg.angle = angle;
-	obstacles_msg.distance = distance;
+    obstacles_msg.detected_obstacles = detected_obstacles;
+    obstacles_msg.obstacle_vertices = obstacle_vertices;
 	pubMsg.publish(obstacles_msg);
 
     // Publish debug info
@@ -172,16 +205,14 @@ void laser_msg_Callback(
         debug_scan.intensities = intensities;
 
         laser_pub.publish(debug_scan);
-
-        ROS_INFO("Angle: %i  |Distance: %f", 
-                 angle, 
-                 distance);
     }
     
     // Finish counting time
 	end_time = cv::getTickCount();
     elapsed_time = 
         (end_time - start_time)/cv::getTickFrequency();
+
+    ROS_INFO("Detected obstacles: %i", detected_obstacles);
     ROS_INFO("Time elapsed:%f....... end block", elapsed_time);
 }
 };
@@ -193,7 +224,12 @@ int main(int argc,char **argv)
     ROS_INFO("ObstacleDetection node running...");
 
     // Get parameters from launch
-
+    ros::param::get("/debug_mode", DEBUG);
+	ros::param::get("~initial_range_angle", INITIAL_RANGE_ANGLE);
+    ros::param::get("~end_range_angle", END_RANGE_ANGLE);
+    ros::param::get("~range", RANGE);
+    ros::param::get("~min_obstacle_points", MIN_OBSTACLE_POINTS);
+    ros::param::get("~max_distance_points", MAX_DISTANCE_POINTS);
 
     ObstacleDetection od;
     ros::spin();

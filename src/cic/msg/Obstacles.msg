@@ -1,4 +1,4 @@
 Header header
-float32 distance
-int16 angle
+int8 detected_obstacles
+geometry_msgs/Point[] obstacle_vertices
 
