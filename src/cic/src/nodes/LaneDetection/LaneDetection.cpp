@@ -178,13 +178,15 @@ void imageCb(const sensor_msgs::ImageConstPtr& msg)
 
 		// Speed PWM calculation
 		speed_PWM.data = 
-			CalculateSpeedPWM(
-				steering_PWM.data,
-				speed_PWM.data);		  
+			SpeedSaturation(
+				CalculateSpeedPWM(steering_PWM.data),
+				speed_PWM.data);
+					  
 	}
 	else{
 		if (speed_PWM.data < 0)
-			speed_PWM.data = -200;
+		// TODO verify lost condition
+			speed_PWM.data = -150;
 	}
 
 	// Messages publication
@@ -228,6 +230,9 @@ int main(int argc, char** argv)
 {
 	ros::init(argc, argv, "LaneDetection");
 	ROS_INFO("LaneDetection node running...");
+
+	steering_PWM.data = SERVO_CENTER;
+	speed_PWM.data = -200;
 
 	// Get parameters from launch
 	ros::param::get("/debug_mode", DEBUG);

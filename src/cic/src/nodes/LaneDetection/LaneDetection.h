@@ -9,7 +9,7 @@ int SERVO_STEP = 2;
 int LANE_WIDTH = 110;
 int SERVO_CENTER = 90;
 bool DRIVE_RIGHT_LANE = true;
-float STEERING_SPEED_RATIO = 1.5;
+float STEERING_SPEED_RATIO = 1.0;
 
 /* Global Constants initialization */
 int RIGHT_LINE = -1;
@@ -25,7 +25,7 @@ int const GRAY_THRESHOLD = 50;
 int const MAX_PEAK_HEIGHT = 25;
 int const MAX_PEAK_WIDTH = 15;
 int const SAFE_MARGIN = 10;
-int const SPEED_INCREASE_STEP = 5;
+int const SPEED_INCREASE_STEP = 8;
 int const SPEED_DECREASE_STEP = 10;
 float const MULTIPLY_FACTOR = MAX_VEL / 100.0;
 short int const GAP = 10;
@@ -63,8 +63,8 @@ int CalculateServoPWM(
     }
 	else	
 	{
-        pe = 0.3;
-		pp = 1;
+        pe = 0.25;
+		pp = 1.0;
     }
 		  
     output = 
@@ -111,8 +111,7 @@ int ServoSaturation(
   * steering values.
   */
   int CalculateSpeedPWM(
-    int current_steering_PWM,
-    int current_speed_PWM)
+    int current_steering_PWM)
   {
     float tmp;
     int calculated_PWM;
@@ -122,18 +121,26 @@ int ServoSaturation(
         abs((SERVO_CENTER - current_steering_PWM) * MULTIPLY_FACTOR);
 
     calculated_PWM = int(STEERING_SPEED_RATIO * tmp) + MAX_VEL;
-
-    if (calculated_PWM > (current_speed_PWM + SPEED_INCREASE_STEP))
-    {
-        current_speed_PWM += SPEED_DECREASE_STEP;
-    }
-    else if (calculated_PWM < (current_speed_PWM + SPEED_INCREASE_STEP))
-    {
-        current_speed_PWM -= SPEED_INCREASE_STEP;
-    }
   
-    return current_speed_PWM;
+    return calculated_PWM;
   }
+
+  int SpeedSaturation(
+      int calcualted_speed,
+      int current_speed)
+  {
+    if (calcualted_speed > current_speed)
+    {
+        current_speed += SPEED_DECREASE_STEP;
+    }
+    else if (calcualted_speed < current_speed)
+    {
+        current_speed -= SPEED_INCREASE_STEP;
+    }
+
+    return current_speed;
+  }
+
 
  /*
   * Validates the local maxima found through 

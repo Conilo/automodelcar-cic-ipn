@@ -7,7 +7,8 @@ from cic.msg import Intersection, \
                     Lane
 from master_module import Master, \
                           Task, \
-                          LANE_DRIVING
+                          LANE_DRIVING, \
+                          speed_saturation
 speed_pub = \
     rospy.Publisher(
         '/manual_control/speed',
@@ -21,9 +22,9 @@ steering_pub = \
 # Global parameters
 PWM_STEERING_CENTER = 90
 CROSSING_SPEED = -300
-VEL_DECREASING_FACTOR = -10
+VEL_DECREASING_FACTOR = -8
 STEERING_CHANGE_FACTOR = -2
-MAX_DIST_TO_LINE = 70
+MAX_DIST_TO_LINE = 100
 MIN_DIST_TO_LINE = 5
 
 # Initiates Master class object
@@ -36,8 +37,10 @@ master = Master(PWM_STEERING_CENTER,
                 Task(LANE_DRIVING))
 
 def on_new_intersection_msg(msg):
+    global speed_PWM
 
     start_time = cv2.getTickCount()
+
     # Saves received data
     master.dist_to_line = msg.distance
     master.line_angle = msg.angle
@@ -47,17 +50,24 @@ def on_new_intersection_msg(msg):
     # Process received data
     master.run()
 
+    # Velocity saturation
+    speed_PWM = speed_saturation( \
+        speed_PWM, master.current_speed)
+
     # Set speed and steering policies pusblishing
-    speed_pub.publish(master.current_speed)
+    speed_pub.publish(speed_PWM)
     steering_pub.publish(master.current_steering)
 
-    end_time = cv2.getTickCount()
-    total_time = end_time - start_time
-    rospy.loginfo("Time elapsed: " + str(total_time))
+    elapsed_time = \
+        (cv2.getTickCount() - start_time)/cv2.getTickFrequency()
+
+    rospy.loginfo(" Elapsed time: %5f --------- " % elapsed_time)
 
 def on_new_lane_msg(msg):
+    global speed_PWM
 
     start_time = cv2.getTickCount()
+
     # Saves received data
     master.lane_steering = msg.steering_value
     master.lane_speed = msg.speed_value
@@ -65,14 +75,21 @@ def on_new_lane_msg(msg):
     # Process received data
     master.run()
 
+    # Velocity saturation
+    speed_PWM = speed_saturation( \
+        speed_PWM, master.current_speed)
+
     # Set speed and steering policies pusblishing
-    speed_pub.publish(master.current_speed)
+    speed_pub.publish(speed_PWM)
     steering_pub.publish(master.current_steering)
 
-    end_time = cv2.getTickCount()
-    total_time = \
-        (end_time - start_time)/cv2.getTickFrequency()
-    rospy.loginfo(" ----- Time elapsed: " + str(total_time))
+    
+    elapsed_time = \
+        (cv2.getTickCount() - start_time)/cv2.getTickFrequency()
+
+    rospy.loginfo(" Elapsed time: %5f --------- " % elapsed_time)
+
+    
 
 def main():
     """
@@ -82,6 +99,9 @@ def main():
 
     rospy.init_node('Master')
     rospy.loginfo("Master node running...")
+
+    global speed_PWM
+    speed_PWM = -100
 
     rospy.Subscriber(
         '/crossing_detection', 

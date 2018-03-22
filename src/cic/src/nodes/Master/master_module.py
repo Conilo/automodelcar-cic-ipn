@@ -1,9 +1,12 @@
 import rospy
+import time
 import math as mt
 import numpy as np
+import os
 
 
 # Global constants
+STOP_VELOCITY = 0
 LAST_TASK = -1
 NO_LINE = -1
 
@@ -42,6 +45,18 @@ def calculate_steering(pwm_steering_center,
         steering_change_factor * line_angle
     
     return pwm_steering_center + calculated_steering
+
+def speed_saturation(current_speed, calculated_speed):
+    """
+    Saturates the PWM speed smoothly.
+    """
+    if calculated_speed > current_speed:
+        current_speed += 10
+    elif calculated_speed < current_speed:
+        current_speed -= 5
+
+    return current_speed
+
 
 # Classes definition
 class Task:
@@ -234,13 +249,13 @@ class Master:
                 
                 # Removes this task
                 self.remove_task(LAST_TASK)
-                
+
                 # Sets speed and steeering policies
-                self.current_speed = self.crossing_speed
+                self.current_speed = self.lane_speed
                 self.current_steering = self.lane_steering
-                
-                # Removes current task from pile
-                self.remove_task(LAST_TASK)
+
+                # Kill LaneDetection node to restart it
+                os.system('rosnode kill LaneDetection') 
                 
             # if not, continue with the task policies 
             else:
@@ -260,4 +275,4 @@ class Master:
         # Task assigner
         self.task_assigner()
         # Task solver
-        self.task_solver() 
+        self.task_solver()
