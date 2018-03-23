@@ -70,7 +70,7 @@ int CalculateServoPWM(
     output = 
         center_deviation * pe + 
         curvature_degree * pp + 
-        (center_deviation - last_center_deviation) * 1;
+        (center_deviation - last_center_deviation) * 1.2;
     
     return output;
 }

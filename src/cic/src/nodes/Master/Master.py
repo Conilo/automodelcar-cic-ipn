@@ -2,7 +2,8 @@
 
 import rospy
 import cv2
-from std_msgs.msg import Int16
+from std_msgs.msg import Int16, \
+                         String
 from cic.msg import Intersection, \
                     Lane
 from master_module import Master, \
@@ -19,13 +20,18 @@ steering_pub = \
         '/manual_control/steering',
         Int16, queue_size = 1)
 
+lights_pub = \
+    rospy.Publisher(
+        '/manual_control/lights',
+        String, queue_size= 1)
+
 # Global parameters
 PWM_STEERING_CENTER = 90
-CROSSING_SPEED = -300
-VEL_DECREASING_FACTOR = -8
+CROSSING_SPEED = -350
+VEL_DECREASING_FACTOR = -10
 STEERING_CHANGE_FACTOR = -2
 MAX_DIST_TO_LINE = 100
-MIN_DIST_TO_LINE = 5
+MIN_DIST_TO_LINE = 10
 
 # Initiates Master class object
 master = Master(PWM_STEERING_CENTER,
@@ -57,6 +63,7 @@ def on_new_intersection_msg(msg):
     # Set speed and steering policies pusblishing
     speed_pub.publish(speed_PWM)
     steering_pub.publish(master.current_steering)
+    lights_pub.publish(master.lights)
 
     elapsed_time = \
         (cv2.getTickCount() - start_time)/cv2.getTickFrequency()
@@ -82,6 +89,7 @@ def on_new_lane_msg(msg):
     # Set speed and steering policies pusblishing
     speed_pub.publish(speed_PWM)
     steering_pub.publish(master.current_steering)
+    lights_pub.publish(master.lights)
 
     
     elapsed_time = \

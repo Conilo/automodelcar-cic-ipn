@@ -7,7 +7,7 @@ import os
 
 # Global constants
 STOP_VELOCITY = 0
-LAST_TASK = -1
+CURRENT = -1
 NO_LINE = -1
 
 LANE_DRIVING = 0
@@ -51,7 +51,7 @@ def speed_saturation(current_speed, calculated_speed):
     Saturates the PWM speed smoothly.
     """
     if calculated_speed > current_speed:
-        current_speed += 10
+        current_speed += 15
     elif calculated_speed < current_speed:
         current_speed -= 5
 
@@ -95,6 +95,8 @@ class Master:
     task_pile = None
     current_speed = None
     current_steering = None
+
+    lights = None
 
     def __init__(self,
                  PWM_STEERING_CENTER,
@@ -144,7 +146,7 @@ class Master:
         """
         Get the indicated task from the pile.
         """
-        return self.task_pile[LAST_TASK]
+        return self.task_pile[CURRENT]
     
     def task_assigner(self):
         """
@@ -157,16 +159,14 @@ class Master:
         current_task = self.get_current_task()
 
         # First, checks if a close intersection exists.
-        if (self.dist_to_line > self.min_dist_to_line 
-            and self.dist_to_line < self.max_dist_to_line):
+        if self.dist_to_line > 0:
         
             # Checks current task to avoid intersection 
             # routine duplication
             if (current_task.ID != INTER_APPROACHING 
-                and current_task.ID != CROSSING):
+                and current_task.ID != WATTING):
             
                 # Adds intersection routine
-                self.add_task(Task(CROSSING))
                 self.add_task(Task(WATTING))
                 self.add_task(Task(INTER_APPROACHING))               
                 
@@ -189,6 +189,7 @@ class Master:
             # Sets speed and steering policies
             self.current_speed = self.lane_speed
             self.current_steering = self.lane_steering
+            self.lights = 'diL'
         
         # Intersection approaching case
         elif current_task.ID == INTER_APPROACHING:
@@ -198,14 +199,15 @@ class Master:
                 self.dist_to_line <= self.min_dist_to_line):
                 
                 # Sets speed and steeering policies
-                self.current_speed = 0
+                self.current_speed = -100
                 self.current_steering = \
                     calculate_steering(self.pwm_steering_center,
                                        self.steering_change_factor,
                                        self.line_angle)
+                self.lights = 'fr'
 
                 # Removes current task from pile
-                self.remove_task(LAST_TASK)
+                self.remove_task(CURRENT)
                 
             # if not, continue with the task policies 
             else:
@@ -215,57 +217,51 @@ class Master:
                     calculate_speed(self.vel_decreasing_factor,
                                     self.dist_to_line)
                 self.current_steering = self.lane_steering
+                self.lights = 'stop'
         
         # Watting case
         elif current_task.ID == WATTING:
 
-            # Checks if it's close to an intersection
-            if (self.dist_to_line > 0  and  
-                self.dist_to_line <= self.min_dist_to_line):
+            # Intersection line approaching case
+            if (self.dist_to_line > 0):
 
-                # Sets speed policy
-                self.current_speed = self.crossing_speed/2
+                if (self.dist_to_line < self.min_dist_to_line):
 
-            elif self.dist_to_line > 2 * self.min_dist_to_line:
-
-                # Sets speed policy
-                self.current_speed = self.crossing_speed
-
-                # Removes current task from pile
-                self.remove_task(LAST_TASK)
-            
-            # Sets steering policy
-            self.current_steering = \
+                    # Set policies
+                    self.current_speed = -200
+                    self.current_steering = \
+                        calculate_steering(self.pwm_steering_center,
+                                           self.steering_change_factor,
+                                           self.line_angle)
+                    self.lights = 'fr'
+   
+                else:
+                    # Set policies
+                    self.current_speed = self.crossing_speed
+                    self.current_steering = \
                     calculate_steering(self.pwm_steering_center,
                                        self.steering_change_factor,
                                        self.line_angle)
+                    self.lights = 'diL'
 
-        # Intersection crossing case
-        elif current_task.ID == CROSSING:
-            
-            # Checks if terminal conditions are met
-            if (self.dist_to_line > 0  and  
-                self.dist_to_line <= self.min_dist_to_line):
-                
-                # Removes this task
-                self.remove_task(LAST_TASK)
+                    # Removes current task from pile
+                    self.remove_task(CURRENT)
 
-                # Sets speed and steeering policies
-                self.current_speed = self.lane_speed
-                self.current_steering = self.lane_steering
+            # Intersection end case
+            else:
 
                 # Kill LaneDetection node to restart it
                 os.system('rosnode kill LaneDetection') 
-                
-            # if not, continue with the task policies 
-            else:
-                
-                # Sets speed and steeering policies
-                self.current_speed = self.crossing_speed
-                self.current_steering = \
-                    calculate_steering(self.pwm_steering_center,
-                                       self.steering_change_factor,
-                                       self.line_angle)
+
+                # Set policies
+                self.current_speed = -50
+                self.current_steering = self.lane_steering
+                self.lights = 'diL'
+
+                # Removes current task from pile
+                self.remove_task(CURRENT)
+
+
     def run(self):
         """
         Executes the task assigner and solver 
