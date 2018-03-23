@@ -91,6 +91,9 @@ class Master:
 
     dist_to_line = None
     line_angle = None
+
+    number_obstacles = None
+    obstacles = None
     
     task_pile = None
     current_speed = None
@@ -123,6 +126,8 @@ class Master:
             PWM_STEERING_CENTER
         self.dist_to_line = NO_LINE
         self.line_angle = 0
+        self.number_obstacles = 0
+        self.obstacles = []
         self.task_pile = []
         self.current_speed = 0
         self.current_steering = \

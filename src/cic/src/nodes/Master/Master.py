@@ -5,7 +5,8 @@ import cv2
 from std_msgs.msg import Int16, \
                          String
 from cic.msg import Intersection, \
-                    Lane
+                    Lane, \
+                    Obstacles
 from master_module import Master, \
                           Task, \
                           LANE_DRIVING, \
@@ -42,8 +43,25 @@ master = Master(PWM_STEERING_CENTER,
                 MIN_DIST_TO_LINE,
                 Task(LANE_DRIVING))
 
-def on_new_intersection_msg(msg):
+def publish_policies():
+
     global speed_PWM
+
+    # Velocity saturation
+    speed_PWM = speed_saturation( \
+        speed_PWM, master.current_speed)
+
+    # Publish policies
+    speed_pub.publish(speed_PWM)
+    steering_pub.publish(master.current_steering)
+    lights_pub.publish(master.lights)
+
+def on_new_obstacle_msg(msg):
+
+    detected_obstacles = msg.detected_obstacles
+    rospy.loginfo("Number of detected obstacles: %i" %detected_obstacles)
+
+def on_new_intersection_msg(msg):
 
     start_time = cv2.getTickCount()
 
@@ -56,14 +74,8 @@ def on_new_intersection_msg(msg):
     # Process received data
     master.run()
 
-    # Velocity saturation
-    speed_PWM = speed_saturation( \
-        speed_PWM, master.current_speed)
-
-    # Set speed and steering policies pusblishing
-    speed_pub.publish(speed_PWM)
-    steering_pub.publish(master.current_steering)
-    lights_pub.publish(master.lights)
+    # Pusblish policies
+    publish_policies()
 
     elapsed_time = \
         (cv2.getTickCount() - start_time)/cv2.getTickFrequency()
@@ -71,7 +83,6 @@ def on_new_intersection_msg(msg):
     rospy.loginfo(" Elapsed time: %5f --------- " % elapsed_time)
 
 def on_new_lane_msg(msg):
-    global speed_PWM
 
     start_time = cv2.getTickCount()
 
@@ -82,14 +93,8 @@ def on_new_lane_msg(msg):
     # Process received data
     master.run()
 
-    # Velocity saturation
-    speed_PWM = speed_saturation( \
-        speed_PWM, master.current_speed)
-
-    # Set speed and steering policies pusblishing
-    speed_pub.publish(speed_PWM)
-    steering_pub.publish(master.current_steering)
-    lights_pub.publish(master.lights)
+    # Pusblish policies
+    publish_policies()
 
     
     elapsed_time = \
@@ -120,6 +125,11 @@ def main():
         '/lane_detection', 
         Lane, 
         on_new_lane_msg)
+
+    rospy.Subscriber(
+        '/obstacle_detection', 
+        Obstacles, 
+        on_new_obstacle_msg)
 
     rospy.spin()
 
