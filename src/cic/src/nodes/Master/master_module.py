@@ -3,27 +3,39 @@ import time
 import math as mt
 import numpy as np
 import os
+from geometry_msgs.msg import Point
 
 
 # Global constants
 STOP_VELOCITY = 0
 CURRENT = -1
 NO_LINE = -1
+REVERSE = -1
+NO_OBSTACLE = -1.0
 
 LANE_DRIVING = 0
 INTER_APPROACHING = 1
 WATTING = 2
-CROSSING = 3
+FOLLOWING = 3
 
 # Task names definition
 task_names = {
         LANE_DRIVING:'Lane_driving',
         INTER_APPROACHING: 'Intersection_approaching',
         WATTING: 'Watting',
-        CROSSING: 'Crossing'
+        FOLLOWING: 'Following'
         }
 
 # Misc. functions definition
+def following_speed(vel_decreasing_factor,
+                    dist_to_keep,
+                    dist_to_obstacle):
+
+    distance_diff = \
+        dist_to_obstacle - dist_to_keep
+
+    return vel_decreasing_factor * distance_diff
+
 def calculate_speed(vel_decreasing_factor,
                     dist_to_line):
     """
@@ -31,7 +43,7 @@ def calculate_speed(vel_decreasing_factor,
     to the distace to the intersection line.
     """
     
-    return vel_decreasing_factor * dist_to_line
+    return vel_decreasing_factor *dist_to_line
 
 def calculate_steering(pwm_steering_center,
                        steering_change_factor,
@@ -42,7 +54,7 @@ def calculate_steering(pwm_steering_center,
     """
     
     calculated_steering = \
-        steering_change_factor * line_angle
+        (steering_change_factor * line_angle) + 2
     
     return pwm_steering_center + calculated_steering
 
@@ -56,6 +68,17 @@ def speed_saturation(current_speed, calculated_speed):
         current_speed -= 5
 
     return current_speed
+
+def steering_saturation(curren_steering, calculated_steering):
+    """
+    Saturates the PWM speed smoothly.
+    """
+    if calculate_steering > curren_steering:
+        curren_steering += 3
+    elif calculate_steering < curren_steering:
+        curren_steering -= 3
+
+    return curren_steering
 
 
 # Classes definition
@@ -85,6 +108,7 @@ class Master:
     steering_change_factor = None
     max_dist_to_line = None
     min_dist_to_line = None
+    dist_to_keep = None
     
     lane_speed = None
     lane_steering = None
@@ -94,6 +118,7 @@ class Master:
 
     number_obstacles = None
     obstacles = None
+    current_obstacle = None
     
     task_pile = None
     current_speed = None
@@ -108,6 +133,8 @@ class Master:
                  STEERING_CHANGE_FACTOR,
                  MAX_DIST_TO_LINE,
                  MIN_DIST_TO_LINE,
+                 DIST_TO_KEEP,
+                 MAX_WAIT_TIME,
                  task):
         
         self.pwm_steering_center = \
@@ -127,6 +154,9 @@ class Master:
         self.dist_to_line = NO_LINE
         self.line_angle = 0
         self.number_obstacles = 0
+        self.current_obstacle = \
+            Point(NO_OBSTACLE, NO_OBSTACLE, 0.0)
+        self.dist_to_keep = DIST_TO_KEEP
         self.obstacles = []
         self.task_pile = []
         self.current_speed = 0
@@ -160,7 +190,7 @@ class Master:
         a new task to the pile.
         """
         
-        # Get the current task
+        # Get the current task   
         current_task = self.get_current_task()
 
         # First, checks if a close intersection exists.
@@ -173,7 +203,28 @@ class Master:
             
                 # Adds intersection routine
                 self.add_task(Task(WATTING))
-                self.add_task(Task(INTER_APPROACHING))               
+                self.add_task(Task(INTER_APPROACHING)) 
+        
+        # If not, check for obstacles
+        elif self.dist_to_line == NO_LINE:
+
+            
+            # Checks the number of detected obstacles.
+            if self.number_obstacles > 0:
+
+                
+                # Checks each obstacle info
+                for obstacle in self.obstacles:
+                    
+                    # Obstacle in front detected while driving
+                    if (((obstacle.x > 330.0) or (obstacle.x < 30.0))
+                        and current_task.ID == LANE_DRIVING):
+
+                        # Adds following routine
+                        self.add_task(Task(FOLLOWING))
+                        break
+
+
                 
     def task_solver(self):
         """
@@ -204,7 +255,7 @@ class Master:
                 self.dist_to_line <= self.min_dist_to_line):
                 
                 # Sets speed and steeering policies
-                self.current_speed = -100
+                self.current_speed = -200
                 self.current_steering = \
                     calculate_steering(self.pwm_steering_center,
                                        self.steering_change_factor,
@@ -221,7 +272,10 @@ class Master:
                 self.current_speed = \
                     calculate_speed(self.vel_decreasing_factor,
                                     self.dist_to_line)
-                self.current_steering = self.lane_steering
+                self.current_steering = \
+                    calculate_steering(self.pwm_steering_center,
+                                       self.steering_change_factor,
+                                       self.line_angle)
                 self.lights = 'stop'
         
         # Watting case
@@ -259,12 +313,86 @@ class Master:
                 os.system('rosnode kill LaneDetection') 
 
                 # Set policies
-                self.current_speed = -50
+                self.current_speed = -200
                 self.current_steering = self.lane_steering
                 self.lights = 'diL'
 
                 # Removes current task from pile
                 self.remove_task(CURRENT)
+        
+        elif current_task.ID == FOLLOWING:
+
+            # If no obstacles detected
+            if self.number_obstacles == 0:
+
+                # Set policies
+                self.current_speed = -150
+                self.current_steering = self.lane_steering
+                self.lights = 'diL'
+
+                # Reset count
+
+                # Removes current task from pile
+                self.remove_task(CURRENT)
+
+
+            # Checks distance to each obstacle
+            else:
+                
+                for obstacle in self.obstacles:
+                    
+                    # No obstacle in front, finish task
+                    if ((obstacle.x > 30.0 and obstacle.x < 330.0)
+                        and obstacle.y != 0):
+                        #rospy.loginfo("End following")
+                        # Set policies
+                        self.current_speed = -150
+                        self.current_steering = self.lane_steering
+                        self.lights = 'diL'
+
+                        # Reset count
+
+                        # Removes current task from pile
+                        self.remove_task(CURRENT)
+                        break
+
+                    # Following case
+                    elif (obstacle.y > (self.dist_to_keep + 7)):
+
+                        #rospy.loginfo("Obstacle too far")
+                        # Set policies
+                        self.current_speed = \
+                            following_speed(self.vel_decreasing_factor,
+                                            self.dist_to_keep,
+                                            obstacle.y)
+                        self.current_steering = self.lane_steering
+                        self.lights = 'stop'
+                        break
+
+                    # Reverse case
+                    elif (obstacle.y < (self.dist_to_keep - 7)):
+
+                        #rospy.loginfo("Obstacle too close")
+                        # Set policies
+                        self.current_speed = \
+                            following_speed(self.vel_decreasing_factor,
+                                            self.dist_to_keep,
+                                            obstacle.y)
+                        self.current_steering = self.lane_steering
+                        self.lights = 're'
+                        break
+
+                    # Waitting case
+                    else:
+
+                        # Counting
+                        rospy.loginfo("Idle, counting... ")
+
+                        # Set policies
+                        self.current_speed = 0
+                        self.current_steering = self.lane_steering
+                        self.lights = 'diL'
+                        break
 
 
     def run(self):

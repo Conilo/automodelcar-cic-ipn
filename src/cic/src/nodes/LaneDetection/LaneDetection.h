@@ -5,7 +5,7 @@ bool DIRECT_CONTROL = false;
 int MAX_STEERING_ANGLE_LEFT = 20;
 int MAX_STEERING_ANGLE_RIGHT = 160;
 int MAX_VEL = -500;
-int SERVO_STEP = 2;
+int SERVO_STEP = 3;
 int LANE_WIDTH = 110;
 int SERVO_CENTER = 90;
 bool DRIVE_RIGHT_LANE = true;
@@ -56,7 +56,7 @@ int CalculateServoPWM(
     float pp;
 	int output;  
 		  
-	if (curvature_degree>110 || curvature_degree<90)
+	if (curvature_degree>100 || curvature_degree<80)
     {
 		pe = 1.25;
 		pp = 0.9;
@@ -64,13 +64,13 @@ int CalculateServoPWM(
 	else	
 	{
         pe = 0.25;
-		pp = 1.0;
+		pp = 1.02;
     }
 		  
     output = 
         center_deviation * pe + 
         curvature_degree * pp + 
-        (center_deviation - last_center_deviation) * 1.2;
+        (center_deviation - last_center_deviation) * 1.3;
     
     return output;
 }

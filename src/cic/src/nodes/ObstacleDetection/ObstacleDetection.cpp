@@ -126,50 +126,54 @@ void laser_msg_Callback(
     }
 
     // BDSCAN variation algorithm
-    cnt = 0;
-    last_point = scan_points.front();
-	for (int i = 0; i <= scan_points.size(); ++i)
+    if (!scan_points.empty())
     {
-        current_point = scan_points[i];
+        cnt = 0;
+        last_point = scan_points.front();
+	    for (int i = 0; i <= scan_points.size(); ++i)
+        {
+            current_point = scan_points[i];
 
-        // Unifies the 360 range with 0 range
-        if ((current_point.x < 5) && (last_point.x > 300))
-        {
-            last_point.x = 0;
-        }
-        
-        // Distance between last and current points
-        dist_norm = cv::norm(current_point - last_point);
-        
-        // Verifies if the distance is lower than Epsylon
-        if (dist_norm < MAX_DISTANCE_POINTS)
-        {
-            // Append current point to the object
-            obstacle.push_back(current_point);
-            cnt += 1;
-        }
-        else
-        {
-            // verifies the object's number of points
-            if (cnt > MIN_OBSTACLE_POINTS)
+            // Unifies the 360 range with 0 range
+            if ((current_point.x < 5) && (last_point.x > 300))
             {
-                // append object to object vetor
-                detected_obstacles_vector.push_back(obstacle);
+                last_point.x = 0;
             }
-            // Clear the current object points
-            obstacle.clear();
-            cnt = 0;
-        }
+        
+            // Distance between last and current points
+            dist_norm = cv::norm(current_point - last_point);
+        
+            // Verifies if the distance is lower than Epsylon
+            if (dist_norm < MAX_DISTANCE_POINTS)
+            {
+                // Append current point to the object
+                obstacle.push_back(current_point);
+                cnt += 1;
+            }
+            else
+            {
+                // verifies the object's number of points
+                if (cnt > MIN_OBSTACLE_POINTS)
+                {
+                    // append object to object vetor
+                    detected_obstacles_vector.push_back(obstacle);
+                }
+                // Clear the current object points
+                obstacle.clear();
+                cnt = 0;
+            }
 
-        last_point = current_point;
+            last_point = current_point;
+        }
     }
 
     // Get the obstacles closest vertex
-    detected_obstacles = detected_obstacles_vector.size();
     std::vector<geometry_msgs::Point> obstacle_vertices;
     geometry_msgs::Point vertix;
-    if (detected_obstacles > 0)
+    if (!detected_obstacles_vector.empty())
     {
+        detected_obstacles = detected_obstacles_vector.size();
+
         for (int obstacle_index = 0; 
              obstacle_index < detected_obstacles; 
              obstacle_index++)
@@ -181,19 +185,21 @@ void laser_msg_Callback(
                 sort_y);
             
             // Take the closest point
-            vertix.x = detected_obstacles_vector[obstacle_index].front().x;
-            vertix.y = detected_obstacles_vector[obstacle_index].front().y;
+            vertix.x = 
+                detected_obstacles_vector[obstacle_index].front().x;
+            vertix.y = 
+                100.0 *detected_obstacles_vector[obstacle_index].front().y;
             vertix.z = 0.0;
             obstacle_vertices.push_back(vertix);
             }
-    }
 
-    // Message publication
-    cic::Obstacles obstacles_msg;
-    obstacles_msg.header.stamp = ros::Time::now();
-    obstacles_msg.detected_obstacles = detected_obstacles;
-    obstacles_msg.obstacle_vertices = obstacle_vertices;
-	pubMsg.publish(obstacles_msg);
+        // Message publication
+        cic::Obstacles obstacles_msg;
+        obstacles_msg.header.stamp = ros::Time::now();
+        obstacles_msg.detected_obstacles = detected_obstacles;
+        obstacles_msg.obstacle_vertices = obstacle_vertices;
+	    pubMsg.publish(obstacles_msg);
+    }
 
     // Publish debug info
     if (DEBUG)
