@@ -179,10 +179,10 @@ void laser_msg_Callback(
              obstacle_index++)
         {
             // Sort each obstacle points
-            std::sort(
+            /*std::sort(
                 detected_obstacles_vector[obstacle_index].begin(), 
                 detected_obstacles_vector[obstacle_index].end(),
-                sort_y);
+                sort_y);*/
             
             // Take the closest point
             vertix.x = 

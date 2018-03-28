@@ -52,12 +52,11 @@
         <!-- Set Parameters for CrossingDetection node -->
         <param name="initial_range_angle" value="300.0" type="double" />
         <param name="end_range_angle" value="200.0" type="double" />
-        <param name="range" value="1.7" type="double" />
+        <param name="range" value="1.25" type="double" />
         <param name="min_obstacle_points" value="10" type="int" />
-        <param name="max_distance_points" value="5.0" type="double" />
-        
+        <param name="max_distance_points" value="10.0" type="double" />
     </node>
-
+    
     <node name="Master" 
         pkg="cic" 
         type="Master.py"
@@ -67,8 +66,7 @@
         <param name="intersection" value="200.0" type="double" />
         <param name="range" value="1.0" type="double" />
         <param name="min_obstacle_points" value="10" type="int" />
-        <param name="max_distance_points" value="5.0" type="double" />
-        
+        <param name="max_distance_points" value="5.0" type="double" />   
     </node>
 
 </launch>

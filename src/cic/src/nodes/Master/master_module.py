@@ -17,13 +17,19 @@ LANE_DRIVING = 0
 INTER_APPROACHING = 1
 WATTING = 2
 FOLLOWING = 3
+MOVING_LEFT = 4
+PASSING = 5
+MOVING_RIGHT = 6
 
 # Task names definition
 task_names = {
-        LANE_DRIVING:'Lane_driving',
-        INTER_APPROACHING: 'Intersection_approaching',
+        LANE_DRIVING:'Lane driving',
+        INTER_APPROACHING: 'Intersection approaching',
         WATTING: 'Watting',
-        FOLLOWING: 'Following'
+        FOLLOWING: 'Following',
+        MOVING_LEFT: 'Moving to left lane',
+        PASSING: 'Passing obstacle',
+        MOVING_RIGHT: 'Returning right lane'
         }
 
 # Misc. functions definition
@@ -43,7 +49,14 @@ def calculate_speed(vel_decreasing_factor,
     to the distace to the intersection line.
     """
     
-    return vel_decreasing_factor *dist_to_line
+    tmp = \
+        vel_decreasing_factor * dist_to_line
+    
+    if tmp > -200:
+        return -200
+    else:
+        return tmp
+
 
 def calculate_steering(pwm_steering_center,
                        steering_change_factor,
@@ -118,9 +131,10 @@ class Master:
 
     number_obstacles = None
     obstacles = None
-    current_obstacle = None
+    max_waiting_time = None
     
     task_pile = None
+    count = None
     current_speed = None
     current_steering = None
 
@@ -154,11 +168,11 @@ class Master:
         self.dist_to_line = NO_LINE
         self.line_angle = 0
         self.number_obstacles = 0
-        self.current_obstacle = \
-            Point(NO_OBSTACLE, NO_OBSTACLE, 0.0)
         self.dist_to_keep = DIST_TO_KEEP
         self.obstacles = []
+        self.max_waiting_time = MAX_WAIT_TIME
         self.task_pile = []
+        self.count = 0
         self.current_speed = 0
         self.current_steering = \
             PWM_STEERING_CENTER
@@ -217,12 +231,27 @@ class Master:
                 for obstacle in self.obstacles:
                     
                     # Obstacle in front detected while driving
-                    if (((obstacle.x > 330.0) or (obstacle.x < 30.0))
-                        and current_task.ID == LANE_DRIVING):
+                    if (obstacle.x > 330.0) or (obstacle.x < 30.0):
 
-                        # Adds following routine
-                        self.add_task(Task(FOLLOWING))
-                        break
+                        if current_task.ID == LANE_DRIVING:
+
+                            # Adds following routine
+                            self.add_task(Task(FOLLOWING))
+                            break
+
+                        if ((current_task.ID == FOLLOWING) 
+                            and (self.count > self.max_waiting_time)):
+
+                            rospy.loginfo(self.max_waiting_time)
+                            # Resets count
+                            self.count = 0
+
+                            # Adds passing obstacle routine
+                            self.add_task(Task(MOVING_RIGHT))
+                            self.add_task(Task(PASSING))
+                            self.add_task(Task(MOVING_LEFT))
+                            break
+
 
 
                 
@@ -342,8 +371,7 @@ class Master:
                 for obstacle in self.obstacles:
                     
                     # No obstacle in front, finish task
-                    if ((obstacle.x > 30.0 and obstacle.x < 330.0)
-                        and obstacle.y != 0):
+                    if (obstacle.x > 30.0 and obstacle.x < 330.0):
                         #rospy.loginfo("End following")
                         # Set policies
                         self.current_speed = -150
@@ -351,6 +379,7 @@ class Master:
                         self.lights = 'diL'
 
                         # Reset count
+                        self.count = 0
 
                         # Removes current task from pile
                         self.remove_task(CURRENT)
@@ -359,7 +388,7 @@ class Master:
                     # Following case
                     elif (obstacle.y > (self.dist_to_keep + 7)):
 
-                        #rospy.loginfo("Obstacle too far")
+                        self.count = 0
                         # Set policies
                         self.current_speed = \
                             following_speed(self.vel_decreasing_factor,
@@ -372,7 +401,7 @@ class Master:
                     # Reverse case
                     elif (obstacle.y < (self.dist_to_keep - 7)):
 
-                        #rospy.loginfo("Obstacle too close")
+                        self.count = 0
                         # Set policies
                         self.current_speed = \
                             following_speed(self.vel_decreasing_factor,
@@ -386,13 +415,99 @@ class Master:
                     else:
 
                         # Counting
-                        rospy.loginfo("Idle, counting... ")
+                        self.count += 1
+                        time.sleep(0.5)
+                        rospy.loginfo("Waiting, counting... %i" % self.count)
 
                         # Set policies
                         self.current_speed = 0
                         self.current_steering = self.lane_steering
                         self.lights = 'diL'
                         break
+        
+        elif current_task.ID == MOVING_LEFT:
+
+            for obstacle in self.obstacles:
+                    
+                # Ostacle in front, move to left lane
+                if (obstacle.x < 25.0) or (obstacle.x > 330.0):
+                    
+                    # Set policies
+                    self.current_speed = -250
+                    self.current_steering = 160
+                    self.lights = 'le'
+                    break
+                
+                # On left lane
+                elif (obstacle.x > 25.0) and (obstacle.x < 120.0):
+
+                    # Kill LaneDetection node to restart it
+                    os.system('rosnode kill LaneDetection') 
+
+                    # Set policies
+                    self.current_speed = self.lane_speed
+                    self.current_steering = self.lane_steering
+                    self.lights = 'diL'
+
+                    # Removes current task from pile
+                    self.remove_task(CURRENT)
+                    break
+            
+        elif current_task.ID == PASSING:
+
+            for obstacle in self.obstacles:
+                    
+                # Ostacle passed, finish task
+                if (obstacle.x > 80.0) and (obstacle.x < 200.0):
+                    
+                    # Set policies
+                    self.current_speed = -250
+                    self.current_steering = 60
+                    self.lights = 'ri'
+
+                    # Removes current task from pile
+                    self.remove_task(CURRENT)
+                    break
+                
+                # Drive left lane
+                else:
+
+                    # Set policies
+                    self.current_speed = self.lane_speed
+                    self.current_steering = self.lane_steering
+                    self.lights = 'diL'
+
+                    
+
+        elif current_task.ID == MOVING_RIGHT:
+
+            for obstacle in self.obstacles:
+                    
+                # Ostacle passed, finish task
+                if (((obstacle.x > 120.0) and (obstacle.x < 200.0))
+                    and obstacle.y > 50.0):
+                    
+                    # Kill LaneDetection node to restart it
+                    os.system('rosnode kill LaneDetection') 
+
+                    # Set policies
+                    self.current_speed = self.lane_speed
+                    self.current_steering = self.lane_steering
+                    self.lights = 'diL'
+
+                    # Removes current task from pile
+                    self.remove_task(CURRENT)
+                    break
+                
+                # Return right lane
+                elif (obstacle.x > 80) and (obstacle.x < 200):
+
+                    # Set policies
+                    self.current_speed = -250
+                    self.current_steering = 50
+                    self.lights = 'ri'
+
+
 
 
     def run(self):
