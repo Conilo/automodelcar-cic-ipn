@@ -430,16 +430,16 @@ class Master:
             for obstacle in self.obstacles:
                     
                 # Ostacle in front, move to left lane
-                if (obstacle.x < 25.0) or (obstacle.x > 330.0):
+                if (obstacle.x < 20.0) or (obstacle.x > 340.0):
                     
                     # Set policies
                     self.current_speed = -250
-                    self.current_steering = 160
+                    self.current_steering = 145
                     self.lights = 'le'
                     break
                 
                 # On left lane
-                elif (obstacle.x > 25.0) and (obstacle.x < 120.0):
+                elif ((obstacle.x > 20.0) and (obstacle.x < 120.0)):
 
                     # Kill LaneDetection node to restart it
                     os.system('rosnode kill LaneDetection') 
@@ -458,11 +458,11 @@ class Master:
             for obstacle in self.obstacles:
                     
                 # Ostacle passed, finish task
-                if (obstacle.x > 80.0) and (obstacle.x < 200.0):
+                if (obstacle.x > 80.0) and (obstacle.x < 180.0):
                     
                     # Set policies
-                    self.current_speed = -250
-                    self.current_steering = 60
+                    self.current_speed = -450
+                    self.current_steering = 50
                     self.lights = 'ri'
 
                     # Removes current task from pile
@@ -484,7 +484,7 @@ class Master:
             for obstacle in self.obstacles:
                     
                 # Ostacle passed, finish task
-                if (((obstacle.x > 120.0) and (obstacle.x < 200.0))
+                if (((obstacle.x > 123.0) and (obstacle.x < 180.0))
                     and obstacle.y > 50.0):
                     
                     # Kill LaneDetection node to restart it
@@ -500,10 +500,10 @@ class Master:
                     break
                 
                 # Return right lane
-                elif (obstacle.x > 80) and (obstacle.x < 200):
+                elif (obstacle.x > 80) and (obstacle.x < 180):
 
                     # Set policies
-                    self.current_speed = -250
+                    self.current_speed = -500
                     self.current_steering = 50
                     self.lights = 'ri'
 
