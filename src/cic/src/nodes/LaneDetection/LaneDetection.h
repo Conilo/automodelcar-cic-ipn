@@ -16,7 +16,7 @@ int RIGHT_LINE = -1;
 int LEFT_LINE = 1;
 int const RIGHT_LANE_ORIGIN = 128;
 int const LEFT_LANE_ORIGIN = RIGHT_LANE_ORIGIN - LANE_WIDTH;
-float const IMAGE_PERCENTAGE = 0.75;
+float const IMAGE_PERCENTAGE = 0.76;
 int const ROW_STEP = 4;
 int const SEARCH_RANGE = 10;
 int const ALLOWED_DEVIATION = LANE_WIDTH/2;
@@ -56,21 +56,21 @@ int CalculateServoPWM(
     float pp;
 	int output;  
 		  
-	if (curvature_degree>100 || curvature_degree<80)
+	if (curvature_degree > 100 || curvature_degree<80)
     {
 		pe = 1.25;
-		pp = 0.88;
+		pp = 0.86;
     }
 	else	
 	{
-        pe = 0.25;
+        pe = 0.3;
 		pp = 1.02;
     }
 		  
     output = 
         center_deviation * pe + 
         curvature_degree * pp + 
-        (center_deviation - last_center_deviation) * 1.3;
+        (center_deviation - last_center_deviation) * 1.35;
     
     return output;
 }

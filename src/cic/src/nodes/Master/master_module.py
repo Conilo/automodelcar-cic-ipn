@@ -67,7 +67,7 @@ def calculate_steering(pwm_steering_center,
     """
     
     calculated_steering = \
-        (steering_change_factor * line_angle) + 2
+       int(steering_change_factor * line_angle) + 4
     
     return pwm_steering_center + calculated_steering
 
@@ -327,7 +327,7 @@ class Master:
                     # Set policies
                     self.current_speed = self.crossing_speed
                     self.current_steering = \
-                    calculate_steering(self.pwm_steering_center,
+                        calculate_steering(self.pwm_steering_center,
                                        self.steering_change_factor,
                                        self.line_angle)
                     self.lights = 'diL'
@@ -372,7 +372,7 @@ class Master:
                     
                     # No obstacle in front, finish task
                     if (obstacle.x > 30.0 and obstacle.x < 330.0):
-                        #rospy.loginfo("End following")
+                        
                         # Set policies
                         self.current_speed = -150
                         self.current_steering = self.lane_steering
@@ -430,16 +430,16 @@ class Master:
             for obstacle in self.obstacles:
                     
                 # Ostacle in front, move to left lane
-                if (obstacle.x < 20.0) or (obstacle.x > 340.0):
+                if (obstacle.x < 27.0) or (obstacle.x > 330.0):
                     
                     # Set policies
                     self.current_speed = -250
-                    self.current_steering = 145
+                    self.current_steering = 150
                     self.lights = 'le'
                     break
                 
                 # On left lane
-                elif ((obstacle.x > 20.0) and (obstacle.x < 120.0)):
+                elif (obstacle.x > 27.0) and (obstacle.x < 120.0):
 
                     # Kill LaneDetection node to restart it
                     os.system('rosnode kill LaneDetection') 
@@ -458,10 +458,10 @@ class Master:
             for obstacle in self.obstacles:
                     
                 # Ostacle passed, finish task
-                if (obstacle.x > 80.0) and (obstacle.x < 180.0):
+                if (obstacle.x > 65.0) and (obstacle.x < 180.0):
                     
                     # Set policies
-                    self.current_speed = -450
+                    self.current_speed = -250
                     self.current_steering = 50
                     self.lights = 'ri'
 
@@ -484,9 +484,9 @@ class Master:
             for obstacle in self.obstacles:
                     
                 # Ostacle passed, finish task
-                if (((obstacle.x > 123.0) and (obstacle.x < 180.0))
+                if (((obstacle.x > 110.0) and (obstacle.x < 180.0))
                     and obstacle.y > 50.0):
-                    
+
                     # Kill LaneDetection node to restart it
                     os.system('rosnode kill LaneDetection') 
 
@@ -500,10 +500,10 @@ class Master:
                     break
                 
                 # Return right lane
-                elif (obstacle.x > 80) and (obstacle.x < 180):
+                elif (obstacle.x > 65) and (obstacle.x < 110):
 
                     # Set policies
-                    self.current_speed = -500
+                    self.current_speed = -300
                     self.current_steering = 50
                     self.lights = 'ri'
 
