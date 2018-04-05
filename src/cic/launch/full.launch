@@ -42,6 +42,7 @@
         type="CrossingDetection"
         respawn="true">
         <!-- Set Parameters for CrossingDetection node -->
+        <param name="vel_dec_factor" value="-18" type="int" />
         
     </node>
 
