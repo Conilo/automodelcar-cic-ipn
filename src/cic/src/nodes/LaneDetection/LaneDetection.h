@@ -58,20 +58,12 @@ int CalculateServoPWM(
 		  
 	if (curvature_degree > 100 || curvature_degree<80)
     {
-       /* if (curvature_degree < 40 || curvature_degree > 140 ){
-            pp = 0.7;
-        }
-        else {
-            pp = 0.88;
-        }
-    */
         pp = 0.88;
 		pe = 1.25;
-		
     }
 	else	
 	{
-        	pe = 0.3;
+        pe = 0.3;
 		pp = 1.02;
     }
 

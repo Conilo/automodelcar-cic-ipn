@@ -67,7 +67,7 @@ def calculate_steering(pwm_steering_center,
     """
     
     calculated_steering = \
-       int(steering_change_factor * line_angle) + 3
+       int(steering_change_factor * line_angle) + 2
 
     
     return pwm_steering_center + calculated_steering

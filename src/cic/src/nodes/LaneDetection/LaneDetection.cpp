@@ -201,6 +201,7 @@ void imageCb(const sensor_msgs::ImageConstPtr& msg)
 		LaneMsg.header.stamp = ros::Time::now();
 		LaneMsg.steering_value = steering_PWM.data;
 		LaneMsg.speed_value = speed_PWM.data;
+		LaneMsg.error = center_deviation;
 		pubMsg.publish(LaneMsg);
 	}
 

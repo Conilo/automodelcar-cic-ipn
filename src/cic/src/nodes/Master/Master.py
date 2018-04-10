@@ -33,8 +33,7 @@ lights_pub = \
 # Global parameters
 PWM_STEERING_CENTER = 90
 CROSSING_SPEED = -400
-#VEL_DECREASING_FACTOR = -21
-VEL_DECREASING_FACTOR = -5
+VEL_DECREASING_FACTOR = -15
 STEERING_CHANGE_FACTOR = -2
 MAX_DIST_TO_LINE = 100
 MIN_DIST_TO_LINE = 10
@@ -66,6 +65,7 @@ def publish_policies():
     speed_pub.publish(speed_PWM)
     steering_pub.publish(master.current_steering)
     lights_pub.publish(master.lights)
+    
 
 def on_new_obstacle_msg(msg):
 
@@ -125,7 +125,7 @@ def main():
     rospy.init_node('Master')
     rospy.loginfo("Master node running...")
 
-    VEL_DECREASING_FACTOR = rospy.get_param("vel_dec_factor")
+    VEL_DECREASING_FACTOR = rospy.get_param("~vel_dec_factor")
 
     global speed_PWM, steering_PWM
     speed_PWM = -200
