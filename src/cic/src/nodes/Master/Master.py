@@ -38,7 +38,6 @@ VEL_DECREASING_FACTOR = -5
 STEERING_CHANGE_FACTOR = -2
 MAX_DIST_TO_LINE = 100
 MIN_DIST_TO_LINE = 10
-#DIST_TO_KEEP = 80.0
 DIST_TO_KEEP = 80.0
 MAX_WAIT_TIME = 8
 
@@ -125,6 +124,8 @@ def main():
 
     rospy.init_node('Master')
     rospy.loginfo("Master node running...")
+
+    VEL_DECREASING_FACTOR = rospy.get_param("vel_dec_factor")
 
     global speed_PWM, steering_PWM
     speed_PWM = -200

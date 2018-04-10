@@ -67,7 +67,8 @@ def calculate_steering(pwm_steering_center,
     """
     
     calculated_steering = \
-       int(steering_change_factor * line_angle) -2
+       int(steering_change_factor * line_angle) + 3
+
     
     return pwm_steering_center + calculated_steering
 
@@ -462,8 +463,8 @@ class Master:
             for obstacle in self.obstacles:
                     
                 # Ostacle passed, finish task
-                #if (obstacle.x > 65.0) and (obstacle.x < 180.0):
                 if (obstacle.x > 70.0) and (obstacle.x < 130.0):
+
                     # Set policies
                     self.current_speed = -250
                     self.current_steering = 50
@@ -488,7 +489,6 @@ class Master:
             for obstacle in self.obstacles:
                     
                 # Ostacle passed, finish task
-                #if (((obstacle.x > 115.0) and (obstacle.x < 180.0))
                 if (((obstacle.x > 110.0) and (obstacle.x < 180.0))
                     and obstacle.y > 53.0):
 
@@ -509,7 +509,6 @@ class Master:
 
                     # Set policies
                     self.current_speed = -300
-                    #self.current_steering = 37
                     self.current_steering = 40
                     self.lights = 'ri'
 
