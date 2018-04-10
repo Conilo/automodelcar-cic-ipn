@@ -9,7 +9,7 @@ int SERVO_STEP = 3;
 int LANE_WIDTH = 110;
 int SERVO_CENTER = 90;
 bool DRIVE_RIGHT_LANE = true;
-float STEERING_SPEED_RATIO = 1.0;
+float STEERING_SPEED_RATIO = 1.2;
 
 /* Global Constants initialization */
 int RIGHT_LINE = -1;
@@ -58,14 +58,23 @@ int CalculateServoPWM(
 		  
 	if (curvature_degree > 100 || curvature_degree<80)
     {
+       /* if (curvature_degree < 40 || curvature_degree > 140 ){
+            pp = 0.7;
+        }
+        else {
+            pp = 0.88;
+        }
+    */
+        pp = 0.88;
 		pe = 1.25;
-		pp = 0.88;
+		
     }
 	else	
 	{
-        pe = 0.3;
+        	pe = 0.3;
 		pp = 1.02;
     }
+
 		  
     output = 
         center_deviation * pe + 

@@ -67,7 +67,7 @@ def calculate_steering(pwm_steering_center,
     """
     
     calculated_steering = \
-       int(steering_change_factor * line_angle) + 2
+       int(steering_change_factor * line_angle) -2
     
     return pwm_steering_center + calculated_steering
 
@@ -87,9 +87,9 @@ def steering_saturation(curren_steering, calculated_steering):
     Saturates the PWM speed smoothly.
     """
     if calculate_steering > curren_steering:
-        curren_steering += 3
+        curren_steering += 1
     elif calculate_steering < curren_steering:
-        curren_steering -= 3
+        curren_steering -= 1
 
     return curren_steering
 
@@ -246,6 +246,9 @@ class Master:
                             # Resets count
                             self.count = 0
 
+                            #self.remove_task(CURRENT)
+
+
                             # Adds passing obstacle routine
                             self.add_task(Task(MOVING_RIGHT))
                             self.add_task(Task(PASSING))
@@ -386,8 +389,8 @@ class Master:
                         break
 
                     # Following case
-                    elif (obstacle.y > (self.dist_to_keep + 7)):
-
+                    #elif (obstacle.y > (self.dist_to_keep + 7)):
+                    elif (obstacle.y > (self.dist_to_keep + 15)):
                         self.count = 0
                         # Set policies
                         self.current_speed = \
@@ -399,7 +402,7 @@ class Master:
                         break
 
                     # Reverse case
-                    elif (obstacle.y < (self.dist_to_keep - 7)):
+                    elif (obstacle.y < (self.dist_to_keep - 15)):
 
                         self.count = 0
                         # Set policies
@@ -434,7 +437,8 @@ class Master:
                     
                     # Set policies
                     self.current_speed = -250
-                    self.current_steering = 150
+                    #self.current_steering = 150
+                    self.current_steering = 140
                     self.lights = 'le'
                     break
                 
@@ -459,7 +463,7 @@ class Master:
                     
                 # Ostacle passed, finish task
                 #if (obstacle.x > 65.0) and (obstacle.x < 180.0):
-                if (obstacle.x > 65.0) and (obstacle.x < 110.0):
+                if (obstacle.x > 70.0) and (obstacle.x < 130.0):
                     # Set policies
                     self.current_speed = -250
                     self.current_steering = 50
@@ -486,7 +490,7 @@ class Master:
                 # Ostacle passed, finish task
                 #if (((obstacle.x > 115.0) and (obstacle.x < 180.0))
                 if (((obstacle.x > 110.0) and (obstacle.x < 180.0))
-                    and obstacle.y > 50.0):
+                    and obstacle.y > 53.0):
 
                     # Kill LaneDetection node to restart it
                     os.system('rosnode kill LaneDetection') 
@@ -505,7 +509,8 @@ class Master:
 
                     # Set policies
                     self.current_speed = -300
-                    self.current_steering = 35
+                    #self.current_steering = 37
+                    self.current_steering = 40
                     self.lights = 'ri'
 
 
