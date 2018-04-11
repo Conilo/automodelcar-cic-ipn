@@ -38,7 +38,8 @@ STEERING_CHANGE_FACTOR = -2
 MAX_DIST_TO_LINE = 100
 MIN_DIST_TO_LINE = 10
 DIST_TO_KEEP = 80.0
-MAX_WAIT_TIME = 8
+MAX_WAIT_TIME = 5
+PASSING_ENABLED = False
 
 # Initiates Master class object
 master = Master(PWM_STEERING_CENTER,
@@ -49,6 +50,7 @@ master = Master(PWM_STEERING_CENTER,
                 MIN_DIST_TO_LINE,
                 DIST_TO_KEEP,
                 MAX_WAIT_TIME,
+                PASSING_ENABLED,
                 Task(LANE_DRIVING))
 
 def publish_policies():
@@ -126,6 +128,7 @@ def main():
     rospy.loginfo("Master node running...")
 
     VEL_DECREASING_FACTOR = rospy.get_param("~vel_dec_factor")
+    PASSING_ENABLED = rospy.get_param("~passing")
 
     global speed_PWM, steering_PWM
     speed_PWM = -200

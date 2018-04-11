@@ -67,7 +67,7 @@ def calculate_steering(pwm_steering_center,
     """
     
     calculated_steering = \
-       int(steering_change_factor * line_angle) + 2
+       int(steering_change_factor * line_angle) 
 
     
     return pwm_steering_center + calculated_steering
@@ -139,6 +139,8 @@ class Master:
     current_speed = None
     current_steering = None
 
+    passing_enabled = None
+
     lights = None
 
     def __init__(self,
@@ -150,6 +152,7 @@ class Master:
                  MIN_DIST_TO_LINE,
                  DIST_TO_KEEP,
                  MAX_WAIT_TIME,
+                 PASSING_ENABLED,
                  task):
         
         self.pwm_steering_center = \
@@ -177,6 +180,7 @@ class Master:
         self.current_speed = 0
         self.current_steering = \
             PWM_STEERING_CENTER
+        self.passing_enabled = PASSING_ENABLED
         self.add_task(task)
 
     def add_task(self, task):
@@ -390,8 +394,7 @@ class Master:
                         break
 
                     # Following case
-                    #elif (obstacle.y > (self.dist_to_keep + 7)):
-                    elif (obstacle.y > (self.dist_to_keep + 15)):
+                    elif (obstacle.y > (self.dist_to_keep + 10)):
                         self.count = 0
                         # Set policies
                         self.current_speed = \
@@ -403,7 +406,7 @@ class Master:
                         break
 
                     # Reverse case
-                    elif (obstacle.y < (self.dist_to_keep - 15)):
+                    elif (obstacle.y < (self.dist_to_keep - 10)):
 
                         self.count = 0
                         # Set policies
@@ -419,7 +422,8 @@ class Master:
                     else:
 
                         # Counting
-                        self.count += 1
+                        if self.passing_enabled == True:
+                            self.count += 1
                         time.sleep(0.5)
                         rospy.loginfo("Waiting, counting... %i" % self.count)
 

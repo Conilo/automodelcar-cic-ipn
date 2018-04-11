@@ -1,12 +1,14 @@
 <!-- Run ImageProcessing node in calibration mode -->
 <launch>
+
+    <param name="lane_width" value="100" type="int" />
+
     <node name="ImageProcessing" 
           pkg="cic" 
           type="ImageProcessing">
     <!-- Set Parameters for Image Processing node -->
     <param name="run_on_car" value="false" type="bool" />
     <param name="calibration_mode" value="true" type="bool" />
-    <param name="lane_width" value="100" type="int" />
     <param name="pixel_cm_ratio_x" value="3" type="int" />
     <param name="pixel_cm_ratio_y" value="8" type="int" />
     <param name="scale_x" value="0.4" type="double" />
