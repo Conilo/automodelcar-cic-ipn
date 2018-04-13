@@ -21,7 +21,7 @@ Address: 192.168.43.99
 Netmask: 255.255.255.0
 Gateaway: 192.168.43.1
 
-![](cic_ipv4.png)
+![](img/cic_ipv4.png)
 
 Its recommendable not to repeat the same adress on any computer. 
 
@@ -31,7 +31,7 @@ Once you have saved the changes, connect to its network and type the next comman
 
 If established correctly something similar should appear in your terminal.
 
-![](ping.png)
+![](img/ping.png)
 
 Now we have to edit the next file. This file dictates where to run the master, either locar or on car.
 
@@ -41,11 +41,15 @@ Now we have to edit the next file. This file dictates where to run the master, e
 At the bottom of the file copy the next lines.
 
 > #Run the master on the car
+
 > export ROS_MASTER_URI=http://192.168.43.102:11311
+
 > export ROS_HOSTNAME=192.168.43.97
 
 > #Run the master on local
+
 > #export ROS_MASTER_URI=http://localhost:11311
+
 > #export ROS_HOSTNAME=localhost
 
 When ever you want to run on local comment the two lines below "Run the master on car" and if you want to run on the car comment the two lines below "Run the master on local"
@@ -54,7 +58,8 @@ Finally, with the connection already established type the next command.
 
 > rostopic list 
 
-![](roslist.png)
+![](img/roslist.png)
+
 
 ## Cloning the repository
 Create a new folder named "Workspaces"
