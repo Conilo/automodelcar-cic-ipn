@@ -23,7 +23,7 @@ Select the automodel's wifi "ROS_CIC" and edit it. On "IPv4 Settings" set the ne
 
 ![](img/cic_ipv4.png)
 
-Its recommendable not to repeat the same adress on any computer. 
+Its recommendable not to repeat the same adress on different computers. 
 
 Once you have saved the changes, connect to its network and type the next command to ensure you have communication.
 
@@ -98,7 +98,7 @@ A debug window will be displayed with a chessboard layout (see figure 1). To adj
 - Four points to wrap the image in birdview.
 
 ![](img/calibration_window.png)
-Figure 1: Chessboard pattern displayed on camera adjustmen mode.
+Figure 2: Chessboard pattern displayed on camera adjustmen mode.
 
 ### Autonomous mode
 This mode launches all the nodes needed to run the car on aoutonomous mode for the next tasks:
