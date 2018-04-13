@@ -12,14 +12,14 @@ The ROS distro used is Indigo along with Ubuntu 14.10 LTS. All the C++ and Pyhto
 **IMPORTANT: Before starting, make sure you have ROS and all it's deppendencies properly installed on your PC! Otherwise, visit the [ROS Tutorials](http://wiki.ros.org/ROS/Tutorials/InstallingandConfiguringROSEnvironment).**
 
 ## Establish communication with the car
-Fist we are going to set the correct parameters to our wifi network. Click the wifi icon and then the "Edit Connections" option.
+Fist set the correct parameters to the Ad-hoc network. Click the wifi icon and then the "Edit Connections" option.
 
 Select the automodel's wifi "ROS_CIC" and edit it. On "IPv4 Settings" set the next parameters as follows:
 
-Method: Manual
-Address: 192.168.43.99
-Netmask: 255.255.255.0
-Gateaway: 192.168.43.1
+*Method: Manual
+*Address: 192.168.43.99
+*Netmask: 255.255.255.0
+*Gateaway: 192.168.43.1
 
 ![](img/cic_ipv4.png)
 
@@ -27,36 +27,32 @@ Its recommendable not to repeat the same adress on any computer.
 
 Once you have saved the changes, connect to its network and type the next command to ensure you have communication.
 
- > ping 192.168.43.102
+                ping 192.168.43.102
 
 If established correctly something similar should appear in your terminal.
 
 ![](img/ping.png)
 
-Now we have to edit the next file. This file dictates where to run the master, either locar or on car.
+Now edit the bashrc file. This file dictates where to run the master, either locar or on car.
 
-> cd
-> sudo gedit .bashrc
+                cd
+                sudo gedit .bashrc
 
 At the bottom of the file copy the next lines.
 
-> #Run the master on the car
+                #Run the master on the car
+                export ROS_MASTER_URI=http://192.168.43.102:11311
+                >export ROS_HOSTNAME=192.168.43.97
 
-> export ROS_MASTER_URI=http://192.168.43.102:11311
-
-> export ROS_HOSTNAME=192.168.43.97
-
-> #Run the master on local
-
-> #export ROS_MASTER_URI=http://localhost:11311
-
-> #export ROS_HOSTNAME=localhost
+                #Run the master on local
+                #export ROS_MASTER_URI=http://localhost:11311
+                #export ROS_HOSTNAME=localhost
 
 When ever you want to run on local comment the two lines below "Run the master on car" and if you want to run on the car comment the two lines below "Run the master on local"
 
 Finally, with the connection already established type the next command.
 
-> rostopic list 
+                rostopic list 
 
 ![](img/roslist.png)
 
@@ -64,15 +60,15 @@ Finally, with the connection already established type the next command.
 ## Cloning the repository
 Create a new folder named "Workspaces"
 
-> mkdir Workspaces
+                mkdir Workspaces
 
-Access de folder
+Access the folder
 
-> cd Workspaces
+                cd Workspaces
 
 In order to start working with the code, first clone the repository on your /Workspace folder by typing:
 
-> git clone https://github.com/Conilo/automodelcar-cic-ipn.git
+                git clone https://github.com/Conilo/automodelcar-cic-ipn.git
 
 ## Build the code:
 Then, it's necesarry to compile the code (also after modifiying any file or node source). To do so, type:
