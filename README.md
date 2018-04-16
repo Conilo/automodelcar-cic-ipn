@@ -106,13 +106,22 @@ Figure 2: Chessboard pattern displayed on camera adjustmen mode.
 
 ### Autonomous mode
 This mode launches all the nodes needed to run the car on autonomous mode for the next tasks:
+* Driving
+* Intersection approach 
+* Waitting 
+* Following
+* Move left
+* Move right
+* Passing
 
-The launch file in charge of running the full autonomus mode is called `full.launch`,this file launches the nodes of 
-* image processing, 
-* lane detection, 
-* crossing detection, 
-* obstacle detection, and 
-* master, 
+The launch file in charge of running the full autonomus mode is called `full.launch`,this file launches the nodes of:
+
+* Image processing: in this node transformations of color and size are executed, in order to apply inverse perspective mapping to make the lines of the track parallel. 
+* lane detection: a fine-pix algorithm is applied and with a linear regretion to build the path.  
+* crossing detection:
+* obstacle detection: this node use data received from the lidar and using a variation of the Dbscan algorithm obstacles are found.
+* master: in this node a pile turing machine is implemented to handle the tasks. 
+
 Each of these nodes have their own parameters to be set in the `full.launch` file by the user, those parameters set several characteristics of performance, way of operation among other things. The most relevant parameters are mentioned here.
 
 The first parameter and not related to a node is `debug_mode`. Setting true its value will allow to enter in debug mode, if `run_on_car` is also set true an error will occur, both parameters can't be set true simultaneously. Setting the value false, normal operation will continue. 
@@ -120,33 +129,6 @@ The first parameter and not related to a node is `debug_mode`. Setting true its 
 An other important parameter is `direct_mode` from LaneDetection node, setting true this parameter will publish directly to the motor topics, unlike false that first goes through master node. Continuing with this same node, is `max_vel`, which sets the maximum velocity of the automodel, its important to mention that the more negative it's, the faster it goes. 
 
 Finally from master node is the `passing_allowed` parameter. When an obstacle is detected if set true the automodel will overtake it, otherwise it will wait for the obstacle to disapear.  
-
-#### Relative parameters
-This section deals with some physical parameters and some debuging:
-* `debug_mode`: 
-* `run_on_car`:
-* `lane_width`: 
-* `max_steering_angle_right`: this is        related to the physical limitations of the akerman's mechanism servo, as the name states sets the max angle posible to the right. Its set in sexagesimal degrees.
-* `max_steering_angle_left`: this is        related to the physical limitations of the akerman's mechanism servo, as the name states sets the max angle posible to the left. Its set in sexagesimal degrees.
-
-#### Parameters for Image Processing node
-* `calibration_mode`
-* `pixel_cm_ratio_x`
-* `pixel_cm_ratio_y`
-* `scale_x`
-* `scale_y`
-* `p1`
-* `p2`
-* `p3`
-* `p4`
-
-#### Lane Detection
-* `direct_mode`
-* `max_vel` fas
-* `steering_speed_ratio`
-* ``
-* ``
-* ``
 
 ## Run the code with bags
 To run the code with bags on the PC, having a ROS master running is needed,  you can do it by typing:
