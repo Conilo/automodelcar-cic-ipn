@@ -142,7 +142,7 @@ This section deals with some physical parameters and some debuging:
 
 #### Lane Detection
 * `direct_mode`
-* `max_vel`
+* `max_vel` fas
 * `steering_speed_ratio`
 * ``
 * ``
