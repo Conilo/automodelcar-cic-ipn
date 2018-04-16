@@ -33,7 +33,7 @@ If established correctly something similar should appear in your terminal.
 
 ![](img/ping.png)
 
-Now edit the bashrc file. This file dictates where to run the master, either locar or on car.
+Now edit the bashrc file. This file dictates where to run the master, either local or on car.
 
     cd
     sudo gedit .bashrc
@@ -47,6 +47,10 @@ At the bottom of the file copy the next lines.
     #Run the master on local
     #export ROS_MASTER_URI=http://localhost:11311
     #export ROS_HOSTNAME=localhost
+
+Save the file and source it.
+
+    source .bashrc
 
 When ever you want to run on local comment the two lines below "Run the master on car" and if you want to run on the car comment the two lines below "Run the master on local"
 
@@ -101,9 +105,48 @@ A debug window will be displayed with a chessboard layout (see figure 1). To adj
 Figure 2: Chessboard pattern displayed on camera adjustmen mode.
 
 ### Autonomous mode
-This mode launches all the nodes needed to run the car on aoutonomous mode for the next tasks:
+This mode launches all the nodes needed to run the car on autonomous mode for the next tasks:
 
-TODO
+The launch file in charge of running the full autonomus mode is called `full.launch`,this file launches the nodes of 
+* image processing, 
+* lane detection, 
+* crossing detection, 
+* obstacle detection, and 
+* master, 
+Each of these nodes have their own parameters to be set in the `full.launch` file by the user, those parameters set several characteristics of performance, way of operation among other things. The most relevant parameters are mentioned here.
+
+The first parameter and not related to a node is `debug_mode`. Setting true its value will allow to enter in debug mode, if `run_on_car` is also set true an error will occur, both parameters can't be set true simultaneously. Setting the value false, normal operation will continue. 
+
+An other important parameter is `direct_mode` from LaneDetection node, setting true this parameter will publish directly to the motor topics, unlike false that first goes through master node. Continuing with this same node, is `max_vel`, which sets the maximum velocity of the automodel, its important to mention that the more negative it's, the faster it goes. 
+
+Finally from master node is the `passing_allowed` parameter. When an obstacle is detected if set true the automodel will overtake it, otherwise it will wait for the obstacle to disapear.  
+
+#### Relative parameters
+This section deals with some physical parameters and some debuging:
+* `debug_mode`: 
+* `run_on_car`:
+* `lane_width`: 
+* `max_steering_angle_right`: this is        related to the physical limitations of the akerman's mechanism servo, as the name states sets the max angle posible to the right. Its set in sexagesimal degrees.
+* `max_steering_angle_left`: this is        related to the physical limitations of the akerman's mechanism servo, as the name states sets the max angle posible to the left. Its set in sexagesimal degrees.
+
+#### Parameters for Image Processing node
+* `calibration_mode`
+* `pixel_cm_ratio_x`
+* `pixel_cm_ratio_y`
+* `scale_x`
+* `scale_y`
+* `p1`
+* `p2`
+* `p3`
+* `p4`
+
+#### Lane Detection
+* `direct_mode`
+* `max_vel`
+* `steering_speed_ratio`
+* ``
+* ``
+* ``
 
 ## Run the code with bags
 To run the code with bags on the PC, having a ROS master running is needed,  you can do it by typing:
