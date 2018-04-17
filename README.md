@@ -113,8 +113,11 @@ Figure 4: Chessboard pattern displayed on camera adjustmen mode.
 
 ### Autonomous mode
 To run the code on autonomus mode, type:
+
     bash start.bash -s
-Selecting this mode the bash file will call the `full.launch`, inside this launch file several nodes are "initialize" with specific parameters, to be set by the user. The next is the list of the nodes with some of its most relevant parameters:
+
+Selecting this mode will make the bash file to call the `full.launch`, inside this launch file several nodes are initialize with specific parameters, to be set by the user. 
+The next is the list of the nodes with some of its most relevant parameters:
 
 * Image processing: in this node transformations of color and size are executed, in order to apply inverse perspective mapping to make the lines of the track parallel. 
 * Lane detection: a fine-pix algorithm and a linear regression are applied to build the path. An important parameter from this node is `direct_mode`, setting true this parameter will publish directly to the manual control topic, unlike false that first goes through master node. The next one is `max_vel`, which sets the maximum velocity of the automodel, its important to mention that the more negative it's, the faster it goes. 
