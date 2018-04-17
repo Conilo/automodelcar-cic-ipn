@@ -114,7 +114,7 @@ This mode launches all the nodes needed to run the car on autonomous mode for th
 * Move right
 * Passing
 
-The launch file in charge of running the full autonomus mode is called `full.launch`,this file launches the nodes of:
+The launch file in charge of running the full autonomus mode is called `full.launch`,this file launches the following nodes:
 
 * Image processing: in this node transformations of color and size are executed, in order to apply inverse perspective mapping to make the lines of the track parallel. 
 * lane detection: a fine-pix algorithm is applied and with a linear regretion to build the path.  
