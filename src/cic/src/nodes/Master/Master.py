@@ -33,9 +33,9 @@ lights_pub = \
 # Global parameters
 PWM_STEERING_CENTER = 90
 CROSSING_SPEED = -400
-VEL_DECREASING_FACTOR = -15
+VEL_DECREASING_FACTOR = -18
 STEERING_CHANGE_FACTOR = -2
-MAX_DIST_TO_LINE = 100
+MAX_DIST_TO_LINE = 1
 MIN_DIST_TO_LINE = 10
 DIST_TO_KEEP = 80.0
 MAX_WAIT_TIME = 5
@@ -127,6 +127,7 @@ def main():
     rospy.init_node('Master')
     rospy.loginfo("Master node running...")
 
+    # Get parameters from launch
     VEL_DECREASING_FACTOR = rospy.get_param("~vel_dec_factor")
     PASSING_ENABLED = rospy.get_param("~passing")
 
