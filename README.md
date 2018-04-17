@@ -117,7 +117,7 @@ This mode launches all the nodes needed to run the car on autonomous mode for th
 The launch file in charge of running the full autonomus mode is called `full.launch`,this file launches the following nodes:
 
 * Image processing: in this node transformations of color and size are executed, in order to apply inverse perspective mapping to make the lines of the track parallel. 
-* lane detection: a fine-pix algorithm is applied and with a linear regretion to build the path.  
+* lane detection: a fine-pix algorithm and a linear regression are applied to build the path.  
 * crossing detection:
 * obstacle detection: this node use data received from the lidar and using a variation of the Dbscan algorithm obstacles are found.
 * master: in this node a pile turing machine is implemented to handle the tasks. 
