@@ -23,6 +23,8 @@ Select the automodel's wifi "ROS_CIC" and edit it. On "IPv4 Settings" set the ne
 
 ![](img/cic_ipv4.png)
 
+Figure 1: Window of automodel network properties. 
+
 Its recommendable not to repeat the same adress on different computers. 
 
 Once you have saved the changes, connect to its network and type the next command to ensure you have communication.
@@ -32,6 +34,8 @@ Once you have saved the changes, connect to its network and type the next comman
 If established correctly something similar should appear in your terminal.
 
 ![](img/ping.png)
+
+Figure 2: Results of ping command with a successful communication.
 
 Now edit the bashrc file. This file dictates where to run the master, either local or on car.
 
@@ -59,6 +63,8 @@ Finally, with the connection already established type the next command.
 rostopic list 
 
 ![](img/roslist.png)
+
+Figure 3: List of topics from the odroid.
 
 
 ## Cloning the repository
@@ -102,10 +108,13 @@ A debug window will be displayed with a chessboard layout (see figure 1). To adj
 - Four points to wrap the image in birdview.
 
 ![](img/calibration_window.png)
-Figure 2: Chessboard pattern displayed on camera adjustmen mode.
+
+Figure 4: Chessboard pattern displayed on camera adjustmen mode.
 
 ### Autonomous mode
-The file in charge of running the full autonomus mode is called `full.launch`,this file launches the following nodes:
+To run the code on autonomus mode, type:
+    bash start.bash -s
+Selecting this mode the bash file will call the `full.launch`, inside this launch file several nodes are "initialize" with specific parameters, to be set by the user. The next is the list of the nodes with some of its most relevant parameters:
 
 * Image processing: in this node transformations of color and size are executed, in order to apply inverse perspective mapping to make the lines of the track parallel. 
 * Lane detection: a fine-pix algorithm and a linear regression are applied to build the path. An important parameter from this node is `direct_mode`, setting true this parameter will publish directly to the manual control topic, unlike false that first goes through master node. The next one is `max_vel`, which sets the maximum velocity of the automodel, its important to mention that the more negative it's, the faster it goes. 
@@ -114,8 +123,6 @@ The file in charge of running the full autonomus mode is called `full.launch`,th
 * master: in this node a state machine is implemented to handle the tasks of driving, intersection approach, waitting, following, move left, move right and passing. In order to activate the passing it's necessary to set the `passing_allowed` parameter true. When an obstacle is detected if set true the automodel will overtake it, otherwise it will wait for the obstacle to disapear.
 
 There is an other important parameter to mention and not related to a node,`debug_mode`. Setting true its value will allow to enter in debug mode, if `run_on_car` is also set true an error will occur, both parameters can't be set true simultaneously. Setting the value false, normal operation will continue. 
-
-Each of these nodes have their own parameters to be set in the `full.launch` file by the user, those parameters set several characteristics of performance, way of operation among other things. Some of the most relevant parameters were mentioned here.
 
 ## Run the code with bags
 To run the code with bags on the PC, having a ROS master running is needed,  you can do it by typing:
