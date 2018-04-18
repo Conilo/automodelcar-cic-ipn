@@ -121,9 +121,9 @@ The next is the list of the nodes with some of its most relevant parameters:
 
 * Image processing: in this node transformations of color and size are executed, in order to apply inverse perspective mapping to make the lines of the track parallel. 
 * Lane detection: a fine-pix algorithm and a linear regression are applied to build the path. An important parameter from this node is `direct_mode`, setting true this parameter will publish directly to the manual control topic, unlike false that first goes through master node. The next one is `max_vel`, which sets the maximum velocity of the automodel, its important to mention that the more negative it's, the faster it goes. 
-* crossing detection:
-* obstacle detection: this node use data received from the lidar and using a variation of the Dbscan algorithm obstacles are found.
-* master: in this node a state machine is implemented to handle the tasks of driving, intersection approach, waitting, following, move left, move right and passing. In order to activate the passing it's necessary to set the `passing_allowed` parameter true. When an obstacle is detected if set true the automodel will overtake it, otherwise it will wait for the obstacle to disapear.
+* Crossing detection: finds a straight line and the deviation angle respect to the car.
+* Obstacle detection: this node use data received from the lidar and using a variation of the Dbscan algorithm obstacles are found.
+* Master: in this node a state machine is implemented to handle the tasks of driving, intersection approach, waitting, following, move left, move right and passing. In order to activate the passing it's necessary to set the `passing_allowed` parameter true. When an obstacle is detected if set true the automodel will overtake it, otherwise it will wait for the obstacle to disapear.
 
 There is an other important parameter to mention and not related to a node,`debug_mode`. Setting true its value will allow to enter in debug mode, if `run_on_car` is also set true an error will occur, both parameters can't be set true simultaneously. Setting the value false, normal operation will continue. 
 
