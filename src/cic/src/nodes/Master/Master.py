@@ -35,27 +35,19 @@ PWM_STEERING_CENTER = 90
 CROSSING_SPEED = -400
 VEL_DECREASING_FACTOR = -15
 STEERING_CHANGE_FACTOR = -2
-MAX_DIST_TO_LINE = 100
+MAX_DIST_TO_LINE = 1
 MIN_DIST_TO_LINE = 10
 DIST_TO_KEEP = 80.0
 MAX_WAIT_TIME = 5
 PASSING_ENABLED = False
 
-# Initiates Master class object
-master = Master(PWM_STEERING_CENTER,
-                CROSSING_SPEED,
-                VEL_DECREASING_FACTOR,
-                STEERING_CHANGE_FACTOR,
-                MAX_DIST_TO_LINE,
-                MIN_DIST_TO_LINE,
-                DIST_TO_KEEP,
-                MAX_WAIT_TIME,
-                PASSING_ENABLED,
-                Task(LANE_DRIVING))
+
+master = None
+
 
 def publish_policies():
 
-    global speed_PWM, steering_PWM
+    global master, speed_PWM, steering_PWM
 
     # Velocity saturation
     speed_PWM = speed_saturation( \
@@ -71,11 +63,15 @@ def publish_policies():
 
 def on_new_obstacle_msg(msg):
 
+    global master
+
     # Saves received data
     master.number_obstacles = msg.detected_obstacles
     master.obstacles = msg.obstacle_vertices
 
 def on_new_intersection_msg(msg):
+
+    global master
 
     start_time = cv2.getTickCount()
 
@@ -97,6 +93,8 @@ def on_new_intersection_msg(msg):
     rospy.loginfo(" Elapsed time: %5f --------- " % elapsed_time)
 
 def on_new_lane_msg(msg):
+
+    global master
 
     start_time = cv2.getTickCount()
 
@@ -123,16 +121,28 @@ def main():
     All the node messages will be processed by 
     the master node to set the car's behavior.
     """
+    global master, speed_PWM, steering_PWM
 
     rospy.init_node('Master')
     rospy.loginfo("Master node running...")
 
+    # Get parameters from launch
     VEL_DECREASING_FACTOR = rospy.get_param("~vel_dec_factor")
-    PASSING_ENABLED = rospy.get_param("~passing")
+    PASSING_ENABLED = rospy.get_param("~passing_enabled")
 
-    global speed_PWM, steering_PWM
     speed_PWM = -200
     steering_PWM = PWM_STEERING_CENTER
+    
+    master = Master(PWM_STEERING_CENTER,
+                CROSSING_SPEED,
+                VEL_DECREASING_FACTOR,
+                STEERING_CHANGE_FACTOR,
+                MAX_DIST_TO_LINE,
+                MIN_DIST_TO_LINE,
+                DIST_TO_KEEP,
+                MAX_WAIT_TIME,
+                PASSING_ENABLED,
+                Task(LANE_DRIVING))
 
     rospy.Subscriber(
         '/crossing_detection', 

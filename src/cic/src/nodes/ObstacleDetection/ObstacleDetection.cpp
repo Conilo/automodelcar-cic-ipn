@@ -234,8 +234,8 @@ int main(int argc,char **argv)
 	ros::param::get("~initial_range_angle", INITIAL_RANGE_ANGLE);
     ros::param::get("~end_range_angle", END_RANGE_ANGLE);
     ros::param::get("~range", RANGE);
-    ros::param::get("~min_obstacle_points", MIN_OBSTACLE_POINTS);
-    ros::param::get("~max_distance_points", MAX_DISTANCE_POINTS);
+    ros::param::get("~min_points", MIN_OBSTACLE_POINTS);
+    ros::param::get("~max_distance", MAX_DISTANCE_POINTS);
 
     ObstacleDetection od;
     ros::spin();
