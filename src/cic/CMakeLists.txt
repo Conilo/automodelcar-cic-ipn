@@ -103,7 +103,7 @@ add_executable(LaneDetection src/nodes/LaneDetection/LaneDetection.cpp)
 add_executable(CrossingDetection src/nodes/CrossingDetection/CrossingDetection.cpp)
 add_executable(ParkingMaster src/nodes/Parking/ParkingMaster.cpp)
 add_executable(ObstacleDetection src/nodes/ObstacleDetection/ObstacleDetection.cpp)
-
+add_executable(JoyControl src/nodes/JoyControl/JoyControl.cpp)
 
 ## Add cmake target dependencies of the executable
 ## same as for the library above
@@ -112,6 +112,7 @@ add_dependencies(LaneDetection ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPO
 add_dependencies(CrossingDetection ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 add_dependencies(ParkingMaster ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 add_dependencies(ObstacleDetection ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+add_dependencies(JoyControl ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
 target_link_libraries(ImageProcessing
@@ -138,3 +139,7 @@ target_link_libraries(ObstacleDetection
    ${PROJECT_NAME}
 )
 
+target_link_libraries(JoyControl
+   ${catkin_LIBRARIES}
+   ${PROJECT_NAME}
+)

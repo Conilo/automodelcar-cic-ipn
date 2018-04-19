@@ -112,11 +112,11 @@ A debug window will be displayed with a chessboard layout (see figure 1). To adj
 Figure 4: Chessboard pattern displayed on camera adjustmen mode.
 
 ### Autonomous mode
-To run the code on autonomus mode, type:
+To run the code on autonomus mode, acces the odroid and type:
 
-    bash start.bash -s
+    roslaunch  cic full.launch
 
-Selecting this mode will make the bash file to call the `full.launch`, inside this launch file several nodes are initialize with specific parameters, to be set by the user. 
+Inside this launch file several nodes are initialize with specific parameters, to be set by the user. 
 The next is the list of the nodes with some of its most relevant parameters:
 
 * Image processing: in this node transformations of color and size are executed, in order to apply inverse perspective mapping to make the lines of the track parallel. 
@@ -156,3 +156,4 @@ Cesar Gerardo Bravo Conejo  (e-mail: conilo@gmail.com).
 Student assistants:
 - Brenda Camacho Garcia (e-mail: brendacg616@gmail.com).
 - Esteban Iván Rojas Hernández (e-mail: rojasesteban23@gmail.com).
+- David Alejandro Toro Sandoval (e-mail: toro.david@hotmail.com).
