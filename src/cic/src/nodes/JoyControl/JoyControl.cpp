@@ -3,34 +3,98 @@
 #include <std_msgs/Int16.h>
 #include <iostream>
 
+int z = 100, x = 0, zcent = 90;
+int xmin = -800, xmax = 800;  // -adelante +reversa  :MAX hardware! [-2500, 2500]
+int zmin = 20, zmax = 160;  // izq=180, centro = 90, der=0
+bool reverza = false;
+int id_stering = 0; // 0 o 3
+bool first_run = true;
 
-float y = 100, j=0;
-int x = 0, z=90;
-int xmin = -400, xmax = 400;
-int zmin = 80, zmax = 100;  //20 a 160
+/* 360 control
+left joy = 1, right joy = -1
+RT = 1, full = -1
+buton = 0, push = 1
+*/
 
 void joyCallback(const sensor_msgs::Joy::ConstPtr& joy)
 {
-	j=joy->axes[2];
-	y = (j*140)+90;
-	z=(int)y;
-	//ROS_INFO("%f --- %f",y,j);
+  
+  // Dirección del carro
+  if (joy->axes[id_stering] > 0.2){  // Izq
+    z = (int) (90 + joy->axes[id_stering] * 90) ;
+  }
+  else if (joy->axes[id_stering] < -0.2){  // Der
+    z = (int) (90 + joy->axes[id_stering] * 90)  ;
+  }
+  else{//Neutro
+    z = zcent;
+  }
+  
+  // Sentido de avance
+  if (joy->buttons[3]){  // Y
+    reverza = false;
+  }
+  if (joy->buttons[1]) {  // B
+    reverza = true;
+  } 
 
-   if (joy->buttons[2])   //Velocidad
-      x += -50;
-   else if (joy->buttons[3])
-      x += 50;
+  // Acelerar-reverza
+  if(!reverza){   // Adelante
 
-   if(joy->buttons[4] || joy->buttons[5] || joy->buttons[6] || joy->buttons[7])
-   {
-      x = 0;
-      z = 100;
-   }
+    if (joy->axes[5] < 0.9){  // Acelerar
 
-   if (x > xmax) x = xmax;
-   if (x < xmin) x = xmin;
-   if (z > zmax) z = zmax;
-   if (z < zmin) z = zmin;
+      if (x > 0){  // si va en reversa
+        x -= 20;  // decrementa velocidad
+
+      }else{ // avanza a escala del valor máximo
+        x = -xmin * ((joy->axes[5] - 1) * (0.5));
+
+      }
+    }else if(x < 0){ // Neutro
+      x += 20;
+
+      if(x > 0){
+        x = 0;
+      }
+    }
+  }else{ // atras
+
+    if (joy->axes[5] < 0.9){  // Acelerar
+
+      if (x < 0){  // si va hacia delante
+        x += 20;  // aumenta velocidad
+
+      }else{ // avanza a escala del valor máximo
+        x = xmax * ((joy->axes[5] - 1) * (-0.5));
+
+      }
+    }else if(x > 0){ // Neutro
+      x -= 20;
+
+      if(x < 0){
+        x = 0;
+      }
+    }
+  }
+
+
+  if(joy->buttons[4] || joy->buttons[5]){  // Paro de emergencia 
+    first_run = false;
+    x = 0;
+    z = zcent;
+  }
+
+  // Ajuste de Límites
+  if (x > xmax) 
+    x = xmax;
+  if (x < xmin) 
+    x = xmin;
+  if (z > zmax)
+    z = zmax;
+  if (z < zmin)
+    z = zmin;
+
+  
 }
 
 int main(int argc, char **argv)
@@ -42,8 +106,8 @@ int main(int argc, char **argv)
    ros::Publisher steeringpub_ = nh_.advertise<std_msgs::Int16>("/manual_control/steering", 1);
    std_msgs::Int16 speed;
    std_msgs::Int16 steering;
-   ros::Rate loop_rate(10);
-
+   ros::Rate loop_rate(30);//10
+   
    while(ros::ok()) {
       speed.data = x;
       speedpub_.publish(speed);
