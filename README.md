@@ -149,7 +149,7 @@ where the "desired_bag" is the file name without extention.
 ## Contact:
 If you need more info about the code, please contact:
 
-* Project Coordinator:
+* Project Supervisor:
 Erik Zamora Gómez (e-mail: ezamora1981@gmail.com).
 
 * Project Manager: 
