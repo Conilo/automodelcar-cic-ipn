@@ -1,5 +1,5 @@
 # AutoModelCar CIC IPN
-Welcome to the CIC's AutoModel Car gitHub. This repository contents the code for the next modules:
+This is CIC's repository package for the [AutoModelCar](https://github.com/AutoModelCar). This repository contents the code for the next modules:
 
 - Image processing and camera adjustment (C++ and Python).
 - Lane follower (C++ and Pyhton).
@@ -12,12 +12,75 @@ The ROS distro used is Indigo along with Ubuntu 14.10 LTS. All the C++ and Pyhto
 **IMPORTANT: Before starting, make sure you have ROS and all it's deppendencies properly installed on your PC! Otherwise, visit the [ROS Tutorials](http://wiki.ros.org/ROS/Tutorials/InstallingandConfiguringROSEnvironment).**
 
 ## Establish communication with the car
-TODO
+First set the correct parameters to the Ad-hoc network. Click the wifi icon and then the "Edit Connections" option.
+
+Select the automodel's wifi "ROS_CIC" and edit it. On "IPv4 Settings" set the next parameters as follows:
+
+* Method: Manual
+* Address: 192.168.43.99
+* Netmask: 255.255.255.0
+* Gateaway: 192.168.43.1
+
+![](img/cic_ipv4.png)
+
+Figure 1: Window of automodel network properties. 
+
+**IMPORTANT: Its recommended not to repeat the same adress on different computers.**
+
+Once you have saved the changes, reconnect to the network and on a terminal type the next command to ensure you have communication.
+
+    ping 192.168.43.102
+
+If established correctly something similar should appear in your terminal.
+
+![](img/ping.png)
+
+Figure 2: Results of ping command with a successful communication.
+
+Now edit the .bashrc file on the home directory folder. This file dictates where  the master will be running, either local or on car.
+
+    cd
+    sudo gedit .bashrc
+
+At the bottom of the file copy the next lines.
+
+    #Run the master on the car
+    export ROS_MASTER_URI=http://192.168.43.102:11311
+    export ROS_HOSTNAME=192.168.43.97
+
+    #Run the master on local
+    #export ROS_MASTER_URI=http://localhost:11311
+    #export ROS_HOSTNAME=localhost
+
+Save the file and source it.
+
+    source .bashrc
+
+Whenever you want to run on local, comment the two lines below "Run the master on car"; and if you want to run on the car, comment the two lines below "Run the master on local"
+
+Finally, with the connection already established type the next command:
+
+    rostopic list 
+
+If the master was found, you should see the next list.
+
+![](img/roslist.png)
+
+Figure 3: List of topics from the odroid.
+
 
 ## Cloning the repository
+Create a new folder named "Workspaces"
+
+    mkdir Workspaces
+
+Access the folder
+
+    cd Workspaces
+
 In order to start working with the code, first clone the repository on your /Workspace folder by typing:
 
-> git clone https://github.com/Conilo/automodelcar-cic-ipn.git
+    git clone https://github.com/Conilo/automodelcar-cic-ipn.git
 
 ## Build the code:
 Then, it's necesarry to compile the code (also after modifiying any file or node source). To do so, type:
@@ -38,7 +101,7 @@ To run the camera adjustment mode, type:
 
 > bash start.bash -cm
 
-A debug window will be displayed with a chessboard layout (see figure 1). To adjust the camera, you will need a printed chesboard pattern of 35x35 [cm]. Lay down the printed pattern in front of the camera and modify the parameters in the camera calibration launch file in order to match the chessboard pattern with the one displayed. Those parameters are:
+A debug window will be displayed with a chessboard layout (see figure 4). To adjust the camera, you will need a printed chesboard pattern of 35x35 [cm]. Lay down the printed pattern in front of the camera and modify the parameters in the camera calibration launch file in order to match the chessboard pattern with the one displayed. Those parameters are:
 
 - Pixel to cm ratio in the X-axis.
 - Pixel to cm ratio in the Y-axis.
@@ -46,13 +109,25 @@ A debug window will be displayed with a chessboard layout (see figure 1). To adj
 - Scaling factor for the Y-axis.
 - Four points to wrap the image in birdview.
 
-![](img/calibration_window.png)
-Figure 1: Chessboard pattern displayed on camera adjustmen mode.
+![](img/carril.png)
+
+Figure 4: Chessboard pattern displayed on camera adjustmen mode.
 
 ### Autonomous mode
-This mode launches all the nodes needed to run the car on aoutonomous mode for the next tasks:
+To run the code on autonomus mode, acces the odroid and type:
 
-TODO
+    roslaunch  cic full.launch
+
+Inside this launch file, several nodes are initialized using specific parameters to be set by the user.
+The next is the node list with the description of some relevant parameters:
+
+* Image processing: in this node, color, size and perspective mapping trasnformations are applied in order to get parallel lane lines, and reduced noice. 
+* Lane detection: a find-peaks algorithm and a linear regression are applied to model the lane and generate a trajectory. An important parameter of this node is `direct_mode`; setting true this parameter will publish directly to the manual control topic; otherwise to publish on the manual control topic it will first go through master node. The next one is `max_vel`, which sets the maximum velocity of the automodel, its important to mention that the more negative it's, the faster it goes. 
+* Crossing detection: finds a straight line and calculates deviation angle and distance respect to the car.
+* Obstacle detection: this node uses data from the scan topic and using a variation of the Dbscan algorithm, the obstacles are indetified and modeled.
+* Master: in this node a state machine is implemented to handle the tasks of driving, intersection approach, waitting, following, move left, move right and passing. In order to activate the passing task it's necessary to set the `passing_allowed` parameter true, then if an obstacle is detected the automodel will overtake it, otherwise it will wait for the obstacle to move.
+
+Another important parameter to mention, which is related to different nodes, is `debug_mode`. Setting true its value will allow the user to enter in debug mode. If `run_on_car` is also set true an error will occur, both parameters can't be set true simultaneously. 
 
 ## Run the code with bags
 To run the code with bags on the PC, having a ROS master running is needed,  you can do it by typing:
@@ -74,7 +149,7 @@ where the "desired_bag" is the file name without extention.
 ## Contact:
 If you need more info about the code, please contact:
 
-* Project Coordinator:
+* Project Supervisor:
 Erik Zamora Gómez (e-mail: ezamora1981@gmail.com).
 
 * Project Manager: 
@@ -83,3 +158,4 @@ Cesar Gerardo Bravo Conejo  (e-mail: conilo@gmail.com).
 Student assistants:
 - Brenda Camacho Garcia (e-mail: brendacg616@gmail.com).
 - Esteban Iván Rojas Hernández (e-mail: rojasesteban23@gmail.com).
+- David Alejandro Toro Sandoval (e-mail: toro.david@hotmail.com).

@@ -1,9 +1,13 @@
 <!-- Run all nodes required for autonomous mode  -->
 <launch>
     <!-- Set Relative Parameters -->
+    <!-- debug_mode if tru enters on that mode -->
     <param name="/debug_mode" value="false" type="bool" />
+    <!-- False if debug_mode true -->
     <param name="/run_on_car" value="true" type="bool" /> 
+    <!--  -->
     <param name="/lane_width" value="100" type="int" />
+    <!-- parameters of the akerman mechanism in sexagesimal degrees -->
     <param name="/max_steering_angle_right" value="160" type="int" />
     <param name="/max_steering_angle_left" value="20" type="int" />
 
@@ -28,8 +32,8 @@
         type="LaneDetection"
         respawn="true">
         <!-- Set Parameters for LaneDetection node -->
-        <param name="direct_mode" value="false" type="bool" />
-        <param name="max_vel" value="-1500" type="int" />
+        <param name="direct_mode" value="true" type="bool" />
+        <param name="max_vel" value="-1000" type="int" />
         <param name="steering_speed_ratio" value="1.5" type="double" />
         <param name="servo_center_position" value="90" type="int" />
         <param name="servo_step" value="2" type="int" />
