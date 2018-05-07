@@ -56,6 +56,7 @@ def yawF_callback(ros_data):
 		yaws = yaw+360
 	else:
 		yaws = yaw
+	
 
 def routine(espacio):
 	global yaw_inic
@@ -65,19 +66,21 @@ def routine(espacio):
 
 	
 	yaw_inic=yaws
+	print('YAW_INIC: %d' %yaw_inic)
 	#yaw_rel=yaw_inic-30 ...27...25..22..20..*21*
-	yaw_rel=yaw_inic-21
-
+	yaw_rel=yaw_inic-27
+	print('YAW_REL: %d' %yaw_rel)
 	while yaws>=yaw_rel:
-		angDir=10
+		angDir=12
 		vel=400
 		pubVel.publish(vel)
-		pubDir.publish(angDir)
-
+		pubDir.publish(angDir)	
+	
 	print('Hola 1')
-	angDir=100
+	angDir=120
 	pubDir.publish(angDir)
 	#while an90>63..83..73..70..69..*67*:
+	pubVel.publish(0)
 	while an90>64:
 		angDir=100
 		vel=300
@@ -87,7 +90,7 @@ def routine(espacio):
 	angDir=170
 	pubDir.publish(angDir)
 	print('Hola 2')
-
+	pubVel.publish(0)
 	#while dist270>.33..20..*.25*:
 	while dist270>0.40:
 		angDir=170
@@ -97,7 +100,7 @@ def routine(espacio):
 		if yaws>yaw_inic:
 			print('YA1')
 			break
-
+	pubVel.publish(0)
 	while yaws<(yaw_inic-3):
 		angDir=30
 		vel=-150
@@ -118,18 +121,18 @@ def routine(espacio):
 	promedio=(espacio)/2.0
 	print(promedio)
 	print(dist270)
+	pubVel.publish(0)
 	while(promedio-dist270)>0.07:
 		angDir=96
 		vel=-140
 		pubVel.publish(vel)
 		pubDir.publish(angDir)
-
-
+	pubVel.publish(0)
 
 def scan_callback(scan):
 	global espacioFlag
-    	global pubVel
-    	global pubDir
+	global pubVel
+	global pubDir
 	global dist90
 	global dist180
 	global an90
@@ -223,7 +226,6 @@ def main():
 
     pubDir = rospy.Publisher('/manual_control/steering', Int16, queue_size=1)
     pubVel = rospy.Publisher('/manual_control/speed', Int16, queue_size=1)
-
 
     rospy.spin()
 

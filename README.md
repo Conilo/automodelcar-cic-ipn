@@ -9,7 +9,7 @@ This is CIC's repository package for the [AutoModelCar](https://github.com/AutoM
 
 The ROS distro used is Indigo along with Ubuntu 14.10 LTS. All the C++ and Pyhton Modules are included in different ROS packages. The launch files are also included.
 
-**IMPORTANT: Before starting, make sure you have ROS and all it's deppendencies properly installed on your PC! Otherwise, visit the [ROS Tutorials](http://wiki.ros.org/ROS/Tutorials/InstallingandConfiguringROSEnvironment).**
+**IMPORTANT: Before starting, make sure you have ROS and all it's deppendencies properly installed on your PC! Otherwise, visit the [ROS Tutorials](http://wiki.ros.org/ROS/Tutorials/InstallingandConfiguringROSEnvironment). Its is also recomended to install [VS Code](https://code.visualstudio.com/download), this is a code editor with a terminal included and compatible with Git commands, this will simplify some work in the future.**
 
 ## Establish communication with the car
 First set the correct parameters to the Ad-hoc network. Click the wifi icon and then the "Edit Connections" option.
@@ -37,7 +37,7 @@ If established correctly something similar should appear in your terminal.
 
 Figure 2: Results of ping command with a successful communication.
 
-Now edit the .bashrc file on the home directory folder. This file dictates where  the master will be running, either local or on car.
+Now in a new terminal open and edit the .bashrc file, located on the home directory folder. This file dictates where  the master will be running, either local or on car.
 
     cd
     sudo gedit .bashrc
@@ -97,7 +97,7 @@ There are different run modes available, depending on the function needed. The n
 
 ### Camera adjustment mode
 
-To run the camera adjustment mode, type:
+To run the camera adjustment mode, inside VSCode open the downloaded folder and using it's terminal type:
 
 > bash start.bash -cm
 
@@ -114,10 +114,25 @@ A debug window will be displayed with a chessboard layout (see figure 4). To adj
 Figure 4: Chessboard pattern displayed on camera adjustmen mode.
 
 ### Autonomous mode
-To run the code on autonomus mode, acces the odroid and type:
+To run the code on autonomus mode, with a new terminal acces the odroid and type:
 
     roslaunch  cic full.launch
 
+If any error occurs when this command is executed, it will be necessary to update and build the code inside the car, this is done fist by running the `update_car.bash` file, which is located in the `/automodel-cic-ipn` folder.
+
+Using the terminal from VSCode type:
+	
+    bash update_car.bash
+
+Once the update has finished, in a new terminal access the odroid and build the recently updated code.
+	
+    ssh root@192.168.43.102
+	roscd cic
+	cd ..
+	catkin build cic
+After the process has finished, try again to launch the autonomus mode.
+
+ 
 Inside this launch file, several nodes are initialized using specific parameters to be set by the user.
 The next is the node list with the description of some relevant parameters:
 
@@ -127,7 +142,17 @@ The next is the node list with the description of some relevant parameters:
 * Obstacle detection: this node uses data from the scan topic and using a variation of the Dbscan algorithm, the obstacles are indetified and modeled.
 * Master: in this node a state machine is implemented to handle the tasks of driving, intersection approach, waitting, following, move left, move right and passing. In order to activate the passing task it's necessary to set the `passing_allowed` parameter true, then if an obstacle is detected the automodel will overtake it, otherwise it will wait for the obstacle to move.
 
-Another important parameter to mention, which is related to different nodes, is `debug_mode`. Setting true its value will allow the user to enter in debug mode. If `run_on_car` is also set true an error will occur, both parameters can't be set true simultaneously. 
+Another important parameter to mention, which is related to different nodes, is `debug_mode`. Setting true its value will allow the user to enter in debug mode. If `run_on_car` is also set true an error will occur, both parameters can't be set true simultaneously.
+
+### Autonomus with overtake
+It is easy to modify the `full.launch` file to allow the Automodel to overtake obstacles however, by launching the `overtake.launch` file there is no need to edit anything. Acces the odroid and type:
+
+    roslaunch cic overtake.launch
+
+## Parking mode
+To run the parking mode, with a new terminal acces the odroid and type:
+
+    roslaunch  cic parking.launch
 
 ## Run the code with bags
 To run the code with bags on the PC, having a ROS master running is needed,  you can do it by typing:

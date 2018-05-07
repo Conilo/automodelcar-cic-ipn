@@ -1,0 +1,32 @@
+
+<launch>
+  <node name="ImageProcessing" 
+        pkg="cic" 
+        type="ImageProcessing"
+        respawn="true">
+        <!-- Set Parameters for Image Processing node -->
+        <param name="calibration_mode" value="false" type="bool" />
+        <param name="pixel_cm_ratio_x" value="3" type="int" />
+        <param name="pixel_cm_ratio_y" value="8" type="int" />
+        <param name="scale_x" value="0.4" type="double" />
+        <param name="scale_y" value="1.2" type="double" />
+        <param name="p1" value="48" type="int" />
+        <param name="p2" value="48" type="int" />
+        <param name="p3" value="44" type="int" />
+        <param name="p4" value="44" type="int" />
+  </node>
+
+  <node name="LaneDetection" 
+        pkg="cic" 
+        type="LaneDetection"
+        respawn="true">
+        <!-- Set Parameters for LaneDetection node -->
+        <param name="direct_mode" value="false" type="bool" />
+        <param name="max_vel" value="-1500" type="int" />
+        <param name="steering_speed_ratio" value="1.5" type="double" />
+        <param name="servo_center_position" value="90" type="int" />
+        <param name="servo_step" value="2" type="int" />
+        <param name="drive_right_lane" value="true" type="bool" />
+  </node>
+  
+</launch>

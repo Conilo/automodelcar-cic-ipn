@@ -68,7 +68,7 @@
         respawn="true">
         <!-- Set Parameters for Master node -->
         <param name="vel_dec_factor" value="-15" type="int" />
-        <param name="passing_enabled" value="false" type="bool" />
+        <param name="passing_enabled" value="true" type="bool" />
 
     </node>
 
