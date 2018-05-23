@@ -6,6 +6,7 @@ This is CIC's repository package for the [AutoModelCar](https://github.com/AutoM
 - Intersection detector (C++ and Pyhton).
 - Obstacke detection (C++ and Pyhton).
 - Joystick (C++).
+- Parking (Python)
 
 The ROS distro used is Indigo along with Ubuntu 14.10 LTS. All the C++ and Pyhton Modules are included in different ROS packages. The launch files are also included.
 
