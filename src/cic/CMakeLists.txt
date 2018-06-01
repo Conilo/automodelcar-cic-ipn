@@ -102,7 +102,7 @@ add_executable(ImageProcessing src/nodes/ImageProcessing/ImageProcessing.cpp)
 add_executable(LaneDetection src/nodes/LaneDetection/LaneDetection.cpp)
 add_executable(CrossingDetection src/nodes/CrossingDetection/CrossingDetection.cpp)
 add_executable(ParkingMaster src/nodes/Parking/ParkingMaster.cpp)
-add_executable(ObstacleDetection src/nodes/ObstacleDetection/ObstacleDetection.cpp)
+add_executable(ParkingSlave src/nodes/Parking/ParkingSlave.cpp)
 add_executable(JoyControl src/nodes/JoyControl/JoyControl.cpp)
 
 ## Add cmake target dependencies of the executable
@@ -111,7 +111,7 @@ add_dependencies(ImageProcessing ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EX
 add_dependencies(LaneDetection ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 add_dependencies(CrossingDetection ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 add_dependencies(ParkingMaster ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-add_dependencies(ObstacleDetection ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+add_dependencies(ParkingSlave ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 add_dependencies(JoyControl ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
@@ -134,7 +134,7 @@ target_link_libraries(ParkingMaster
    ${PROJECT_NAME}
 )
 
-target_link_libraries(ObstacleDetection
+target_link_libraries(ParkingSlave
    ${catkin_LIBRARIES}
    ${PROJECT_NAME}
 )
