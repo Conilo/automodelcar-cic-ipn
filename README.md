@@ -146,6 +146,56 @@ where the "desired_bag" is the file name without extention.
 
 **IMPORTANT: before playing a ROS bag file, make sure that a bags/ folder with your bag inside it exists in your working space. Otherwise, you may need to modify the play_bag.bash file to adjust the path to your bags container folder.**
 
+### Parking nodes
+To run the parking nodes, use the command Roslaunch to start "ParkingMaster", "ParkingSlave", "Image processing" and "Lane detection" nodes. It is important to do a camera adjustment before in order to get the best lane follow to the parking space. 
+
+	> roslaunch  cic parking.launch
+
+The "ParkingSlave" code uses LIDAR info to determine if there is a clear space to parking. It has several parameters to operate, most important parameters are:
+
+	SpaceSize: Determines the minimum LIDAR validations required to assure a valid space to parking
+	MaxRange: Determines the max range in cm to detect objects
+	MinRange: Determines the min range in cm to detect objects
+
+This node sends, by serveral topics, LIDAR segmented info used by the MasterParking node. These topics are:
+	"/parking/max90": Contains the max distance in the first 90 degrees mesuared by Lidar
+	"/parking/max180": Contains the max distance in the first 180 degrees mesuared by Lidar
+	"/parking/min180" : Contains the min distance in the 90 to 180 degrees mesuared by Lidar
+	"/parking/min330": Contains the min distance in 330 to 30 degrees range mesuared by Lidar
+	"/parking/pos90": Contains the position angle of max90
+	"/parking/pos180": Contains the position angle of max180
+	"/parking/posmin180": Contains the position angle of min180
+	"/parking/posmin330": Contains the position angle of min330
+
+
+The node detects the first object and the clear space after, then it slow down the car speed to approach to the second car. Therefore, it detects the second car (also called "reference obstacle") and kills the lanefollow node. After that, ParkingMaster takes the control of front wheels angle and speed of the car.
+
+The "ParkingMaster" node uses all the info provided by ParkingSlave node to determine the error between the car and the second obstacule in terms of angle and distance. 
+
+--Angle Adjustment
+First, it controls the front wheels orientation to reduce the angle error down to zero using a K classic control law
+
+--Vertical Adjustment
+The second step, adjusts the car center to second obstacule edge distance, using the minimal distance to the obstacle as parameter
+	a: Minimal distance to the reference obstacle
+	d1: Distance required to assure a good approach to clear space
+
+--Turn Wheels right
+The next step is to create an angle between the car and the second obstacle, this angle is a parameter inside the code called 
+	alfaK: Determines the approach angle to get inside the parking space
+
+--Backwards Adjustment
+The fourth step is to get inside the space moving the car in reverse. It will stop this step when posmin180 reaches a certain value calculated with "alfaK" and "a" parameters.
+
+Turn Wheels left
+The fifth step turns front wheels left in order to align the car between both obstacles usign "AlfaK" parameter
+
+Final Adjustment
+the final step is to move the car to the reference creating a specific distace called "DF"
+	DF: Determines the final distance to the reference obstacle 
+
+
+
 ## Contact:
 If you need more info about the code, please contact:
 
@@ -159,3 +209,4 @@ Student assistants:
 - Brenda Camacho Garcia (e-mail: brendacg616@gmail.com).
 - Esteban Iván Rojas Hernández (e-mail: rojasesteban23@gmail.com).
 - David Alejandro Toro Sandoval (e-mail: toro.david@hotmail.com).
+- Sabik Fernando Portillo Villalobos (e-mail: sportillov1300@gmail.com).

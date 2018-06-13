@@ -10,7 +10,7 @@
     <node name="ImageProcessing" 
         pkg="cic" 
         type="ImageProcessing"
-        respawn="true">
+        respawn="false">
         <!-- Set Parameters for Image Processing node -->
         <param name="calibration_mode" value="false" type="bool" />
         <param name="pixel_cm_ratio_x" value="3" type="int" />
@@ -29,7 +29,7 @@
         respawn="false">
         <!-- Set Parameters for LaneDetection node -->
         <param name="direct_mode" value="true" type="bool" />
-        <param name="max_vel" value="-600" type="int" />
+        <param name="max_vel" value="-1000" type="int" />
         <param name="steering_speed_ratio" value="1.5" type="double" />
         <param name="servo_center_position" value="90" type="int" />
         <param name="servo_step" value="2" type="int" />
@@ -37,16 +37,17 @@
         
     </node>
 
-    <node name="laser_follower" 
+    <node name="ParkingMaster" 
         pkg="cic" 
-        type="pub_slave.py">
+        type="ParkingMaster">
+        respawn="true">
         <!-- Set Parameters for CrossingDetection node -->
         
     </node>
     
-    <node name="master_laser" 
+    <node name="ParkingSlave" 
         pkg="cic" 
-        type="master_parking.py"
+        type="ParkingSlave"
         respawn="true">
         <!-- Set Parameters for Master node -->
            

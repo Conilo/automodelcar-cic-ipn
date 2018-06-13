@@ -7,7 +7,7 @@
           pkg="cic" 
           type="ImageProcessing">
     <!-- Set Parameters for Image Processing node -->
-    <param name="run_on_car" value="false" type="bool" />
+    <param name="run_on_car" value="true" type="bool" />
     <param name="calibration_mode" value="true" type="bool" />
     <param name="pixel_cm_ratio_x" value="3" type="int" />
     <param name="pixel_cm_ratio_y" value="8" type="int" />
